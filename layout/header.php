@@ -21,64 +21,64 @@ if (session_status() == PHP_SESSION_NONE) {
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <style>
-    /* Scrollbar kecil dan halus untuk tab */
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
+        /* Scrollbar kecil dan halus untuk tab */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
 
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
 
-    ::-webkit-scrollbar-track {
-        background: #f9fafb;
-    }
+        ::-webkit-scrollbar-track {
+            background: #f9fafb;
+        }
 
-    /* Ganti warna track scrollbar di dark mode */
-    html.dark ::-webkit-scrollbar-track {
-        background: #1f2937;
-        /* gray-800 */
-    }
+        /* Ganti warna track scrollbar di dark mode */
+        html.dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+            /* gray-800 */
+        }
 
-    ::-webkit-scrollbar-thumb {
-        background: #db2777;
-        /* pink-600 */
-        border-radius: 10px;
-    }
+        ::-webkit-scrollbar-thumb {
+            background: #db2777;
+            /* pink-600 */
+            border-radius: 10px;
+        }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: #be185d;
-        /* pink-700 */
-    }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #be185d;
+            /* pink-700 */
+        }
 
-    /* Ganti warna thumb scrollbar di dark mode */
-    html.dark ::-webkit-scrollbar-thumb {
-        background: #a855f7;
-        /* purple-500 */
-    }
+        /* Ganti warna thumb scrollbar di dark mode */
+        html.dark ::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            /* purple-500 */
+        }
 
-    /* Kelas untuk rotasi ikon chevron-down di FAQ */
-    .rotate-180 {
-        transform: rotate(180deg);
-    }
+        /* Kelas untuk rotasi ikon chevron-down di FAQ */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
 
-    .group-open\:rotate-180 {
-        transition: transform 0.3s ease-in-out;
-    }
+        .group-open\:rotate-180 {
+            transition: transform 0.3s ease-in-out;
+        }
 
-    /* Style untuk dropdown (jika tidak menggunakan Alpine.js sepenuhnya untuk semua dropdown) */
-    .dropdown-menu {
-        display: none;
-    }
+        /* Style untuk dropdown (jika tidak menggunakan Alpine.js sepenuhnya untuk semua dropdown) */
+        .dropdown-menu {
+            display: none;
+        }
 
-    .dropdown:hover .dropdown-menu {
-        display: block;
-    }
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
     </style>
 </head>
 
@@ -97,69 +97,69 @@ if (session_status() == PHP_SESSION_NONE) {
 
             <div class="flex items-center space-x-6">
                 <nav class="space-x-6 hidden md:flex font-semibold">
-                    <a href="#kategori"
+                    <a href="kategori.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Kategori</a>
-                    <a href="#keunggulan"
+                    <a href="keunggulan.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Keunggulan</a>
-                    <a href="#cara-kerja"
+                    <a href="cara_kerja.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Cara Kerja</a>
-                    <a href="#testimoni"
+                    <a href="testimoni.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Testimoni</a>
-                    <a href="#faq" class="hover:underline hover:text-pink-100 transition-colors duration-200">FAQ</a>
-                    <a href="#kontak"
+                    <a href="FAQ.php" class="hover:underline hover:text-pink-100 transition-colors duration-200">FAQ</a>
+                    <a href="kontak.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Kontak</a>
 
                     <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-                    <a href="index.php?page=riwayat-laporan"
-                        class="hover:underline hover:text-pink-100 transition-colors duration-200">Lihat Laporan</a>
+                        <a href="index.php?page=riwayat-laporan"
+                            class="hover:underline hover:text-pink-100 transition-colors duration-200">Lihat Laporan</a>
                     <?php endif; ?>
                 </nav>
 
-                <button class="text-white focus:outline-none theme-switcher" id="theme-switcher">
+                <!-- <button class="text-white focus:outline-none theme-switcher" id="theme-switcher">
                     <i data-feather="sun" class="block dark:hidden"></i>
                     <i data-feather="moon" class="hidden dark:block"></i>
-                </button>
+                </button> -->
 
 
                 <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-                <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
-                        <img src="assets/img/profile/<?= htmlspecialchars($_SESSION['foto_profile'] ?? 'default.png') ?>"
-                            alt="Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-md" />
-                        <span class="hidden md:flex flex-col font-medium leading-tight text-white">
-                            <?= htmlspecialchars($_SESSION['nama'] ?? 'Pelapor') ?>
-                            <span class="text-xs text-left text-pink-100">
-                                <?= htmlspecialchars($_SESSION['role'] ?? '') ?>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
+                            <img src="assets/img/profile/<?= htmlspecialchars($_SESSION['foto_profile'] ?? 'default.png') ?>"
+                                alt="Avatar" class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-md" />
+                            <span class="hidden md:flex flex-col font-medium leading-tight text-white">
+                                <?= htmlspecialchars($_SESSION['nama'] ?? 'Pelapor') ?>
+                                <span class="text-xs text-left text-pink-100">
+                                    <?= htmlspecialchars($_SESSION['role'] ?? '') ?>
+                                </span>
                             </span>
-                        </span>
-                    </button>
+                        </button>
 
-                    <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-3 w-48 bg-white text-gray-800 rounded-md shadow-lg py-2 z-50
+                        <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-3 w-48 bg-white text-gray-800 rounded-md shadow-lg py-2 z-50
                                dark:bg-gray-700 dark:text-white">
-                        <a href="index.php?page=profile"
-                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <i class="fas fa-user mr-2 text-gray-600 dark:text-gray-300"></i> Profile
-                        </a>
-                        <a href="index.php?page=account-setting"
-                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <i class="fas fa-cog mr-2 text-gray-600 dark:text-gray-300"></i> Account settings
-                        </a>
-                        <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
-                            class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Log out
-                        </a>
+                            <a href="index.php?page=profile"
+                                class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <i class="fas fa-user mr-2 text-gray-600 dark:text-gray-300"></i> Profile
+                            </a>
+                            <a href="index.php?page=account-setting"
+                                class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <i class="fas fa-cog mr-2 text-gray-600 dark:text-gray-300"></i> Account settings
+                            </a>
+                            <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
+                                class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Log out
+                            </a>
+                        </div>
                     </div>
-                </div>
                 <?php else: ?>
-                <button id="menu-btn" class="focus:outline-none md:hidden" x-data="{ open: false }"
-                    @click="open = !open" :class="{'text-pink-100': open}">
-                    <i class="fas fa-bars text-xl" x-show="!open"></i>
-                    <i class="fas fa-times text-xl" x-show="open" x-transition></i>
-                </button>
+                    <button id="menu-btn" class="focus:outline-none md:hidden" x-data="{ open: false }"
+                        @click="open = !open" :class="{'text-pink-100': open}">
+                        <i class="fas fa-bars text-xl" x-show="!open"></i>
+                        <i class="fas fa-times text-xl" x-show="open" x-transition></i>
+                    </button>
                 <?php endif; ?>
             </div>
         </div>
@@ -174,17 +174,17 @@ if (session_status() == PHP_SESSION_NONE) {
             <a href="#kontak" class="block hover:underline py-1">Kontak</a>
 
             <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-            <a href="index.php?page=riwayat-laporan" class="block hover:underline py-1">Lihat Laporan</a>
-            <div class="border-t border-pink-500 pt-4 mt-4 dark:border-gray-600">
-                <div class="flex items-center mb-2">
-                    <img src="assets/img/profile/<?= htmlspecialchars($_SESSION['foto_profile'] ?? 'default.png') ?>"
-                        alt="Avatar" class="w-8 h-8 rounded-full object-cover mr-2 border border-white" />
-                    <p class="font-medium"><?= htmlspecialchars($_SESSION['nama'] ?? 'Pelapor') ?></p>
+                <a href="index.php?page=riwayat-laporan" class="block hover:underline py-1">Lihat Laporan</a>
+                <div class="border-t border-pink-500 pt-4 mt-4 dark:border-gray-600">
+                    <div class="flex items-center mb-2">
+                        <img src="assets/img/profile/<?= htmlspecialchars($_SESSION['foto_profile'] ?? 'default.png') ?>"
+                            alt="Avatar" class="w-8 h-8 rounded-full object-cover mr-2 border border-white" />
+                        <p class="font-medium"><?= htmlspecialchars($_SESSION['nama'] ?? 'Pelapor') ?></p>
+                    </div>
+                    <p class="text-xs text-pink-100 mb-2"><?= htmlspecialchars($_SESSION['role'] ?? '') ?></p>
+                    <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
+                        class="block text-white hover:underline">Logout</a>
                 </div>
-                <p class="text-xs text-pink-100 mb-2"><?= htmlspecialchars($_SESSION['role'] ?? '') ?></p>
-                <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
-                    class="block text-white hover:underline">Logout</a>
-            </div>
             <?php else: ?>
 
             <?php endif; ?>

@@ -1,7 +1,5 @@
 <?php include 'layout/header.php'; ?>
 
-
-
 <section
     class="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
     <div class="md:w-1/2 md:pr-8 mb-10 md:mb-0">
@@ -15,19 +13,19 @@
         </p>
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
             <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-            <a href="index?page=laporan"
-                class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
-                Laporkan Sekarang
-            </a>
+                <a href="index?page=laporan"
+                    class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
+                    Laporkan Sekarang
+                </a>
             <?php else: ?>
-            <a href="login"
-                class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
-                Login
-            </a>
-            <a href="login"
-                class="inline-block border-2 border-pink-600 text-pink-600 px-8 py-3 rounded-full font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 dark:text-pink-400 dark:border-pink-400 dark:hover:bg-pink-900">
-                Daftar
-            </a>
+                <a href="login"
+                    class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
+                    Login
+                </a>
+                <a href="login"
+                    class="inline-block border-2 border-pink-600 text-pink-600 px-8 py-3 rounded-full font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 dark:text-pink-400 dark:border-pink-400 dark:hover:bg-pink-900">
+                    Daftar
+                </a>
             <?php endif; ?>
         </div>
     </div>
@@ -270,68 +268,4 @@
     </div>
 </section>
 
-<footer id="kontak" class="bg-pink-600 text-white py-12 md:py-16 dark:bg-gray-800">
-    <div class="container mx-auto px-4 max-w-7xl">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-center md:text-left">
-
-            <div>
-                <a href="#" class="inline-block text-2xl font-bold mb-4">SIPENG <span class="text-pink-200">Anti
-                        Bullying</span></a>
-                <p class="text-pink-100 text-sm md:text-base leading-relaxed">
-                    Platform pelaporan bullying dan pelecehan seksual di MAN 1 Cilegon. Menjamin keamanan dan
-                    kerahasiaan untuk lingkungan sekolah yang lebih baik.
-                </p>
-            </div>
-
-            <div>
-                <h5 class="font-semibold text-lg mb-4">Tautan Cepat</h5>
-                <ul class="space-y-2">
-                    <li><a href="#kategori" class="text-pink-100 hover:text-white transition duration-300">Kategori</a>
-                    </li>
-                    <li><a href="#keunggulan"
-                            class="text-pink-100 hover:text-white transition duration-300">Keunggulan</a></li>
-                    <li><a href="#cara-kerja" class="text-pink-100 hover:text-white transition duration-300">Cara
-                            Kerja</a></li>
-                    <li><a href="#testimoni"
-                            class="text-pink-100 hover:text-white transition duration-300">Testimoni</a></li>
-                    <li><a href="#faq" class="text-pink-100 hover:text-white transition duration-300">FAQ</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h5 class="font-semibold text-lg mb-4">Hubungi Kami</h5>
-                <p class="text-pink-100 text-sm md:text-base mb-2">
-                    <i class="fas fa-map-marker-alt mr-2"></i> Jl. Jend. Sudirman No. 123, Cilegon, Banten
-                </p>
-                <p class="text-pink-100 text-sm md:text-base mb-2">
-                    <i class="fas fa-phone-alt mr-2"></i> (0254) 1234567
-                </p>
-                <p class="text-pink-100 text-sm md:text-base">
-                    <i class="fas fa-envelope mr-2"></i> info@man1cilegon.sch.id
-                </p>
-                <div class="flex justify-center md:justify-start space-x-4 mt-6">
-                    <a href="#" class="text-pink-100 hover:text-white transition duration-300"><i
-                            class="fab fa-facebook-f text-xl"></i></a>
-                    <a href="#" class="text-pink-100 hover:text-white transition duration-300"><i
-                            class="fab fa-twitter text-xl"></i></a>
-                    <a href="#" class="text-pink-100 hover:text-white transition duration-300"><i
-                            class="fab fa-instagram text-xl"></i></a>
-                    <a href="#" class="text-pink-100 hover:text-white transition duration-300"><i
-                            class="fab fa-youtube text-xl"></i></a>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="border-t border-pink-500 border-opacity-50 mt-12 pt-8 text-center">
-            <p class="text-pink-200 text-sm md:text-base">&copy; 2025 MAN 1 Cilegon. All rights reserved.</p>
-            <p class="text-pink-200 text-xs mt-1">Dibuat dengan ❤️ oleh Tim Dev MAN 1 Cilegon</p>
-        </div>
-    </div>
-</footer>
-
-<script src="./assets/js/app.js"></script>
-
-</body>
-
-</html>
+<?php include 'layout/footer.php'; ?>

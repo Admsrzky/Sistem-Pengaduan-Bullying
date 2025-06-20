@@ -226,9 +226,7 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
 
 <body class="bg-gray-100 dark:bg-gray-900">
     <div class="flex h-screen">
-        <?php include 'sidebar.php'; // Menyertakan sidebar 
-        ?>
-
+        <?php include 'sidebar.php'; ?>
         <div class="flex flex-col flex-1">
             <header class="bg-white dark:bg-gray-800 shadow-md">
                 <div class="container mx-auto px-6 py-3 flex items-center justify-between">
@@ -248,17 +246,18 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="relative">
+                            <?php if ($user_role === 'admin'): ?>
                             <button class="text-gray-500 dark:text-gray-400 focus:outline-none" id="notification-btn">
                                 <i data-feather="bell"></i>
                                 <?php if (!empty($latest_reports)): ?>
                                 <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                                 <?php endif; ?>
                             </button>
+                            <?php endif; ?>
                             <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hidden z-10"
                                 id="notification-dropdown">
                                 <div class="p-4">
                                     <?php
-                                    // Memeriksa apakah ada laporan untuk ditampilkan
                                     if (!empty($latest_reports)) {
                                         echo '<p class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Laporan Terbaru:</p>'; // Judul untuk daftar laporan
                                         foreach ($latest_reports as $report) {

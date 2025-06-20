@@ -1,9 +1,8 @@
-<footer id="kontak" class="bg-pink-600 text-white py-12 md:py-16 mt-16 dark:bg-gray-900 -mt-16">
+<footer id="kontak" class="bg-pink-600 text-white py-12 md:py-16 dark:bg-gray-800">
     <div class="container mx-auto px-4 max-w-7xl">
-        <div
-            class="flex flex-col md:flex-row md:justify-between md:items-start text-center md:text-left gap-8 md:gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-center md:text-left">
 
-            <div class="flex-1 mb-8 md:mb-0">
+            <div>
                 <a href="#" class="inline-block text-2xl font-bold mb-4">SIPENG <span class="text-pink-200">Anti
                         Bullying</span></a>
                 <p class="text-pink-100 text-sm md:text-base leading-relaxed">
@@ -12,7 +11,7 @@
                 </p>
             </div>
 
-            <div class="flex-1 mb-8 md:mb-0">
+            <div>
                 <h5 class="font-semibold text-lg mb-4">Tautan Cepat</h5>
                 <ul class="space-y-2">
                     <li><a href="#kategori" class="text-pink-100 hover:text-white transition duration-300">Kategori</a>
@@ -27,13 +26,14 @@
                 </ul>
             </div>
 
-            <div class="flex-1">
+            <div>
                 <h5 class="font-semibold text-lg mb-4">Hubungi Kami</h5>
                 <p class="text-pink-100 text-sm md:text-base mb-2">
-                    <i class="fas fa-map-marker-alt mr-2"></i> Jl. Jend. Sudirman No. 123, Cilegon, Banten
+                    <i class="fas fa-map-marker-alt mr-2"></i> Jalan Ir. Sutami Km. 2, 5, Lebak Denok, Cibeber, Kec.
+                    Cibeber, Kota Cilegon, Banten 42442, Indonesia
                 </p>
                 <p class="text-pink-100 text-sm md:text-base mb-2">
-                    <i class="fas fa-phone-alt mr-2"></i> (0254) 1234567
+                    <i class="fas fa-phone-alt mr-2"></i> (0254) 310086
                 </p>
                 <p class="text-pink-100 text-sm md:text-base">
                     <i class="fas fa-envelope mr-2"></i> info@man1cilegon.sch.id
@@ -60,6 +60,11 @@
 </footer>
 
 <script src="./assets/js/app.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+<script>
+    feather.replace();
+</script>
 
 </body>
 
