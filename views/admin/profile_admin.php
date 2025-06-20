@@ -1,8 +1,32 @@
 <?php
 
-include 'header.php'; // Pastikan session_start() ada di sini dan $user_id, $user_nama, $user_foto_profile sudah disetel.
+// Pastikan session_start() sudah dipanggil di header.php
+include 'header.php';
+include '../../controllers/ProfileController.php';
 
-include '../../controllers/ProfileController.php'; // Pastikan path ini benar sesuai struktur direktori Anda
+
+// Ambil data pengguna dari sesi untuk ditampilkan di formulir
+// Ini akan memastikan data yang ditampilkan selalu yang terbaru,
+// termasuk setelah update berhasil yang memperbarui session.
+$user_id = $_SESSION['nis_nip'] ?? null; // Pastikan user_id juga diambil dari session untuk keperluan tampilan
+$user_nama = $_SESSION['nama'] ?? '';
+$user_foto_profile = $_SESSION['foto_profile'] ?? 'default.png'; // Pastikan ada default jika belum ada
+
+// Pastikan $asset_base_path didefinisikan, jika belum, Anda perlu mendefinisikannya di sini atau di header.php
+// Contoh (sesuaikan dengan struktur folder Anda):
+// $asset_base_path = '../assets/img/profile/'; // Jika assets/img/profile ada di sibling folder dari admin
+// Atau jika path absolut:
+$asset_base_path = '../../assets/img/profile/'; // Assuming this path based on your ProfileController.php
+
+// Variabel $success_message dan $error_message akan diisi dari session
+// setelah redirect jika ada pesan dari sesi.
+$success_message = $_SESSION['success_message'] ?? '';
+$error_message = $_SESSION['error_message'] ?? '';
+unset($_SESSION['success_message']); // Hapus pesan setelah ditampilkan
+unset($_SESSION['error_message']); // Hapus pesan setelah ditampilkan
+
+
+
 ?>
 
 <main class="flex-1 p-6 overflow-y-auto">
@@ -11,17 +35,17 @@ include '../../controllers/ProfileController.php'; // Pastikan path ini benar se
     </h2>
 
     <?php if ($success_message): ?>
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <strong class="font-bold">Success!</strong>
-        <span class="block sm:inline"><?= $success_message ?></span>
-    </div>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Success!</strong>
+            <span class="block sm:inline"><?= $success_message ?></span>
+        </div>
     <?php endif; ?>
 
     <?php if ($error_message): ?>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <strong class="font-bold">Error!</strong>
-        <span class="block sm:inline"><?= $error_message ?></span>
-    </div>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline"><?= $error_message ?></span>
+        </div>
     <?php endif; ?>
 
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -30,7 +54,7 @@ include '../../controllers/ProfileController.php'; // Pastikan path ini benar se
                 <label for="foto_profile" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                     Profile Picture
                 </label>
-                <div class="profile-img-container">
+                <div class="profile-img-container relative">
                     <img id="profile-preview" src="<?= $asset_base_path . htmlspecialchars($user_foto_profile) ?>"
                         alt="Profile Picture"
                         class="w-32 h-32 rounded-full object-cover border-4 border-blue-300 dark:border-blue-700">
@@ -91,38 +115,38 @@ include '../../controllers/ProfileController.php'; // Pastikan path ini benar se
 </main>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const profileImgContainer = document.querySelector('.profile-img-container');
-    const fotoProfileInput = document.getElementById('foto_profile');
-    const profilePreview = document.getElementById('profile-preview');
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileImgContainer = document.querySelector('.profile-img-container');
+        const fotoProfileInput = document.getElementById('foto_profile');
+        const profilePreview = document.getElementById('profile-preview');
 
-    if (profileImgContainer && fotoProfileInput && profilePreview) {
-        // Trigger file input click when the image container is clicked
-        profileImgContainer.addEventListener('click', function() {
-            fotoProfileInput.click();
-        });
+        if (profileImgContainer && fotoProfileInput && profilePreview) {
+            // Trigger file input click when the image container is clicked
+            profileImgContainer.addEventListener('click', function() {
+                fotoProfileInput.click();
+            });
 
-        // Display image preview when a file is selected
-        fotoProfileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0]; // Get the selected file
+            // Display image preview when a file is selected
+            fotoProfileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0]; // Get the selected file
 
-            if (file) {
-                const reader = new FileReader(); // Create a FileReader object
+                if (file) {
+                    const reader = new FileReader(); // Create a FileReader object
 
-                reader.onload = function(e) {
-                    profilePreview.src = e.target.result; // Set the image source to the preview
-                };
+                    reader.onload = function(e) {
+                        profilePreview.src = e.target.result; // Set the image source to the preview
+                    };
 
-                reader.readAsDataURL(file); // Read the file as a data URL
-            }
-        });
-    }
+                    reader.readAsDataURL(file); // Read the file as a data URL
+                }
+            });
+        }
 
-    // Optional: Feather icons initialization if you're using it
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
-});
+        // Optional: Feather icons initialization if you're using it
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
 </script>
 
 <?php include 'footer.php'; ?>
