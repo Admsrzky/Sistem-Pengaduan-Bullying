@@ -1,6 +1,6 @@
 <?php include 'layout/header.php'; ?>
 <!-- ## Testimoni -->
-<section id="testimoni" class="py-16 md:py-20 bg-white dark:bg-gray-800">
+<section id="testimoni" class="py-16 md:py-20 bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4 max-w-4xl">
         <h3 class="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-12 dark:text-white">Apa Kata <span
                 class="text-pink-600 dark:text-pink-400">Mereka?</span></h3>

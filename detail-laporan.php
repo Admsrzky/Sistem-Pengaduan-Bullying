@@ -24,7 +24,7 @@ if ($stmt) {
         $mediaPath = "uploads/" . htmlspecialchars($laporan['bukti']); // Path lengkap ke file media
         $status = htmlspecialchars($laporan['status']);
         $lokasi = htmlspecialchars($laporan['lokasi']);
-        $tanggal = date("d M Y, H:i", strtotime($laporan['tanggal_kejadian']));
+        $tanggal = date("d M Y", strtotime($laporan['tanggal_kejadian']));
         $judul = htmlspecialchars($laporan['kronologi']);
         $nis_nip = htmlspecialchars($laporan['nis_nip']);
         $nama_pelapor = htmlspecialchars($laporan['nama_pelapor']);

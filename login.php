@@ -9,6 +9,15 @@ include './auth/authregister.php';
 // Ini adalah status login yang diatur oleh authlogin.php
 // Pastikan variabel $loginStatus diinisialisasi di authlogin.php
 // Variabel $_SESSION['error_message'] juga diatur di authlogin.php
+
+// Ambil status aktif tab dari sesi, default ke 'login'
+$active_tab_from_session = $_SESSION['active_tab'] ?? 'login';
+unset($_SESSION['active_tab']); // Hapus dari session setelah dibaca
+
+// Ambil loginRedirectRole dari sesi, jika ada. Ini penting untuk JS redirect.
+$loginRedirectRole = $_SESSION['login_redirect'] ?? '';
+// Pastikan $_SESSION['login_redirect'] juga di-unset setelah dibaca
+unset($_SESSION['login_redirect']);
 ?>
 
 <!DOCTYPE html>
@@ -21,21 +30,21 @@ include './auth/authregister.php';
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    .tab-active {
-        color: #0d9488;
-        border-color: #0d9488;
-        transition: color 0.3s, border-color 0.3s;
-    }
+        .tab-active {
+            color: #0d9488;
+            border-color: #0d9488;
+            transition: color 0.3s, border-color 0.3s;
+        }
 
-    .tab-inactive {
-        color: #4b5563;
-        border-color: transparent;
-        transition: color 0.3s, border-color 0.3s;
-    }
+        .tab-inactive {
+            color: #4b5563;
+            border-color: transparent;
+            transition: color 0.3s, border-color 0.3s;
+        }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-teal-50 to-white flex items-center justify-center min-h-screen p-6">
+<body class="bg-gradient-to-br from-teal-50 to-white flex flex-col items-center justify-center min-h-screen p-6">
     <div class="w-full max-w-md text-center mb-8">
         <img src="assets/img/logo.png" alt="Logo SIPENG" class="mx-auto h-24 w-auto mb-4" />
         <h1 class="text-3xl font-extrabold text-teal-700 drop-shadow-md">SIPENG MAN 1 CILEGON</h1>
@@ -44,10 +53,8 @@ include './auth/authregister.php';
 
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md border border-teal-200">
         <div class="flex border-b border-teal-200">
-            <button id="login-tab"
-                class="flex-1 py-4 font-semibold tab-active border-b-4 focus:outline-none">Login</button>
-            <button id="register-tab"
-                class="flex-1 py-4 font-semibold tab-inactive border-b-4 focus:outline-none">Register</button>
+            <button id="login-tab" class="flex-1 py-4 font-semibold border-b-4 focus:outline-none">Login</button>
+            <button id="register-tab" class="flex-1 py-4 font-semibold border-b-4 focus:outline-none">Register</button>
         </div>
 
         <div class="p-8">
@@ -71,53 +78,6 @@ include './auth/authregister.php';
             </form>
 
             <form id="register-form" class="space-y-6 hidden" action="" method="POST">
-
-                <?php
-                // Tampilkan pesan register jika ada
-                if (isset($_SESSION['register_status'])):
-                    $regStatus = $_SESSION['register_status'];
-                    $regMessage = '';
-                    $bgColor = '';
-                    $textColor = '';
-
-                    switch ($regStatus) {
-                        case 'success':
-                            $regMessage = 'Akun berhasil dibuat! Silakan login.';
-                            $bgColor = 'bg-green-100';
-                            $textColor = 'text-green-700';
-                            break;
-                        case 'exists':
-                            $regMessage = 'NIS/NIP sudah terdaftar. Gunakan NIS/NIP lain.';
-                            $bgColor = 'bg-yellow-100';
-                            $textColor = 'text-yellow-700';
-                            break;
-                        case 'mismatch':
-                            $regMessage = 'Konfirmasi password tidak sesuai.';
-                            $bgColor = 'bg-red-100';
-                            $textColor = 'text-red-700';
-                            break;
-                        case 'empty':
-                            $regMessage = 'Semua kolom wajib diisi.';
-                            $bgColor = 'bg-red-100';
-                            $textColor = 'text-red-700';
-                            break;
-                        case 'password_too_short': // Ditambahkan dari authregister.php
-                            $regMessage = 'Kata sandi terlalu pendek. Minimal 8 karakter.';
-                            $bgColor = 'bg-red-100';
-                            $textColor = 'text-red-700';
-                            break;
-                        default:
-                            $regMessage = $_SESSION['error_message_register'] ?? 'Terjadi kesalahan saat mendaftarkan akun.';
-                            $bgColor = 'bg-red-100';
-                            $textColor = 'text-red-700';
-                    }
-                ?>
-                <div class="<?= $bgColor ?> border border-<?= substr($bgColor, 3, 4) ?>-400 <?= $textColor ?> px-4 py-3 rounded relative text-left"
-                    role="alert">
-                    <?= htmlspecialchars($regMessage) ?>
-                </div>
-                <?php endif; ?>
-
                 <div>
                     <label for="register-nama" class="block mb-2 font-semibold text-gray-700">Nama Lengkap</label>
                     <input type="text" id="register-nama" name="nama" required
@@ -151,142 +111,186 @@ include './auth/authregister.php';
     </div>
 
     <script>
-    // Script Tab Switch (disesuaikan agar bekerja dengan SweetAlert)
-    const loginTab = document.getElementById('login-tab');
-    const registerTab = document.getElementById('register-tab');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const toRegister = document.getElementById('to-register');
-    const toLogin = document.getElementById('to-login');
+        // Script Tab Switch (disesuaikan agar bekerja dengan SweetAlert)
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const toRegister = document.getElementById('to-register');
+        const toLogin = document.getElementById('to-login');
 
-    // Fungsi untuk mengaktifkan tab Login
-    function activateLogin() {
-        loginTab.classList.add('tab-active');
-        loginTab.classList.remove('tab-inactive');
-        registerTab.classList.add('tab-inactive');
-        registerTab.classList.remove('tab-active');
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
-    }
-
-    // Fungsi untuk mengaktifkan tab Register
-    function activateRegister() {
-        registerTab.classList.add('tab-active');
-        registerTab.classList.remove('tab-inactive');
-        loginTab.classList.add('tab-inactive');
-        loginTab.classList.remove('tab-active');
-        registerForm.classList.remove('hidden');
-        loginForm.classList.add('hidden');
-    }
-
-    // Event Listeners untuk tombol tab
-    loginTab.addEventListener('click', activateLogin);
-    registerTab.addEventListener('click', activateRegister);
-    toRegister.addEventListener('click', (e) => {
-        e.preventDefault();
-        activateRegister();
-    });
-    toLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        activateLogin();
-    });
-
-    // Logika SweetAlert
-    document.addEventListener('DOMContentLoaded', function() {
-        // Data untuk SweetAlert Login
-        const loginStatus = '<?php echo $loginStatus; ?>';
-        const loginErrorMessage =
-            '<?php echo isset($_SESSION["error_message"]) ? htmlspecialchars($_SESSION["error_message"]) : ""; ?>';
-        const loginRedirectRole =
-            '<?php echo isset($_SESSION["login_redirect"]) ? htmlspecialchars($_SESSION["login_redirect"]) : ""; ?>';
-
-        // Data untuk SweetAlert Register
-        const registerStatus = '<?php echo $_SESSION["register_status"] ?? ""; ?>';
-        const registerErrorMessage =
-            '<?php echo isset($_SESSION["error_message_register"]) ? htmlspecialchars($_SESSION["error_message_register"]) : ""; ?>';
-
-
-        // --- Handle Login Status ---
-        if (loginStatus === 'empty') {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Input Kosong!',
-                text: 'NIS/NIP dan kata sandi wajib diisi.',
-                confirmButtonText: 'OK'
-            });
-        } else if (loginStatus === 'not_found') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Login Gagal!',
-                text: 'NIS/NIP tidak terdaftar.',
-                confirmButtonText: 'OK'
-            });
-        } else if (loginStatus === 'wrong_password') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Login Gagal!',
-                text: 'Kata sandi salah.',
-                confirmButtonText: 'OK'
-            });
-        } else if (loginStatus === 'success') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Login Berhasil!',
-                text: 'Anda akan diarahkan ke dashboard.',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                switch (loginRedirectRole) {
-                    case 'kepsek':
-                    case 'admin':
-                        window.location.href = 'views/admin/dashboard-admin.php';
-                        break;
-                    case 'siswa':
-                    case 'guru':
-                        window.location.href = 'index.php';
-                        break;
-                    default:
-                        window.location.href = 'index.php';
-                }
-            });
-        } else if (loginStatus === 'error_general' && loginErrorMessage !== '') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Terjadi Kesalahan Login!',
-                text: loginErrorMessage,
-                confirmButtonText: 'OK'
-            });
+        // Fungsi untuk mengaktifkan tab Login
+        function activateLogin() {
+            loginTab.classList.add('tab-active');
+            loginTab.classList.remove('tab-inactive');
+            registerTab.classList.add('tab-inactive');
+            registerTab.classList.remove('tab-active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
         }
 
-        // --- Handle Register Status ---
-        if (registerStatus !== '' && registerStatus !== 'success') {
+        // Fungsi untuk mengaktifkan tab Register
+        function activateRegister() {
+            registerTab.classList.add('tab-active');
+            registerTab.classList.remove('tab-inactive');
+            loginTab.classList.add('tab-inactive');
+            loginTab.classList.remove('tab-active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        }
+
+        // Event Listeners untuk tombol tab
+        loginTab.addEventListener('click', activateLogin);
+        registerTab.addEventListener('click', activateRegister);
+        toRegister.addEventListener('click', (e) => {
+            e.preventDefault();
             activateRegister();
-            if (registerStatus === 'error') {
+        });
+        toLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            activateLogin();
+        });
+
+        // Logika untuk mengaktifkan tab yang benar saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeTabFromSession = '<?php echo $active_tab_from_session; ?>';
+            if (activeTabFromSession === 'register') {
+                activateRegister();
+            } else {
+                activateLogin();
+            }
+
+            // Data untuk SweetAlert Login
+            const loginStatus = '<?php echo $loginStatus ?? ""; ?>';
+            const loginErrorMessage =
+                '<?php echo isset($_SESSION["error_message"]) ? htmlspecialchars($_SESSION["error_message"]) : ""; ?>';
+            // Ambil role redirect dari PHP, penting untuk SweetAlert sukses login
+            const loginRedirectRole = '<?php echo $loginRedirectRole; ?>';
+
+            // Data untuk SweetAlert Register
+            const registerStatus = '<?php echo $_SESSION["register_status"] ?? ""; ?>';
+            const registerErrorMessage =
+                '<?php echo isset($_SESSION["error_message_register"]) ? htmlspecialchars($_SESSION["error_message_register"]) : ""; ?>';
+
+
+            // --- Handle Login Status ---
+            if (loginStatus === 'empty') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Input Kosong!',
+                    text: 'NIS/NIP dan kata sandi wajib diisi.',
+                    confirmButtonText: 'OK'
+                });
+            } else if (loginStatus === 'not_found') {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Terjadi Kesalahan Pendaftaran!',
-                    text: registerErrorMessage,
+                    title: 'Login Gagal!',
+                    text: 'NIS/NIP tidak terdaftar.',
+                    confirmButtonText: 'OK'
+                });
+            } else if (loginStatus === 'wrong_password') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal!',
+                    text: 'Kata sandi salah.',
+                    confirmButtonText: 'OK'
+                });
+            } else if (loginStatus === 'success') {
+                // SweetAlert untuk sukses login, lalu redirect menggunakan JavaScript
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Berhasil!',
+                    text: 'Anda akan diarahkan ke dashboard.',
+                    timer: 1500,
+                    showConfirmButton: false, // Tidak perlu tombol konfirmasi karena akan redirect otomatis
+                    didClose: () => { // Fungsi ini dijalankan setelah SweetAlert tertutup (termasuk oleh timer)
+                        let redirectUrl = 'index.php'; // Default redirect
+                        switch (loginRedirectRole) {
+                            case 'kepsek':
+                            case 'admin':
+                                redirectUrl = 'views/admin/dashboard-admin.php';
+                                break;
+                            case 'siswa':
+                            case 'guru':
+                                redirectUrl = 'index.php'; // Atau halaman spesifik untuk siswa/guru
+                                break;
+                        }
+                        window.location.href = redirectUrl; // Lakukan redirect
+                    }
+                });
+            } else if (loginStatus === 'error_general' && loginErrorMessage !== '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan Login!',
+                    text: loginErrorMessage,
                     confirmButtonText: 'OK'
                 });
             }
-        } else if (registerStatus === 'success') {
-            activateLogin();
-            Swal.fire({
-                icon: 'success',
-                title: 'Pendaftaran Berhasil!',
-                text: 'Akun Anda berhasil dibuat. Silakan login.',
-                confirmButtonText: 'OK'
-            });
-        }
 
-        // Bersihkan session status setelah SweetAlert ditampilkan
-        <?php
-            unset($_SESSION['login_redirect']);
+            // --- Handle Register Status ---
+            if (registerStatus !== '') { // Hanya tampilkan SweetAlert jika ada status register
+                activateRegister(); // Selalu aktifkan tab register jika ada status register
+                let swalIcon = 'error';
+                let swalTitle = 'Pendaftaran Gagal!';
+                let swalText = '';
+
+                switch (registerStatus) {
+                    case 'success':
+                        swalIcon = 'success';
+                        swalTitle = 'Pendaftaran Berhasil!';
+                        swalText = 'Akun Anda berhasil dibuat. Silakan login.';
+                        activateLogin(); // Setelah sukses, arahkan ke tab login
+                        break;
+                    case 'exists':
+                        swalText = 'NIS/NIP sudah terdaftar. Gunakan NIS/NIP lain.';
+                        break;
+                    case 'mismatch':
+                        swalText = 'Konfirmasi kata sandi tidak sesuai.';
+                        break;
+                    case 'empty':
+                        swalText = 'Semua kolom wajib diisi.';
+                        break;
+                    case 'password_too_short':
+                        swalText = 'Kata sandi terlalu pendek. Minimal 8 karakter.';
+                        break;
+                    case 'password_complexity':
+                        swalText = 'Kata sandi harus mengandung kombinasi huruf besar dan angka.';
+                        break;
+                    case 'error':
+                    default:
+                        swalText = registerErrorMessage !== '' ? registerErrorMessage :
+                            'Terjadi kesalahan saat mendaftarkan akun.';
+                        break;
+                }
+
+                // Tampilkan SweetAlert hanya jika ada pesan yang perlu ditampilkan (bukan hanya pengalihan tab)
+                // Ini untuk mencegah SweetAlert pop up di login success jika itu terjadi setelah register success
+                if (!(registerStatus === 'success' && loginStatus === 'success')) {
+                    Swal.fire({
+                        icon: swalIcon,
+                        title: swalTitle,
+                        text: swalText,
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+
+            // Bersihkan session status setelah SweetAlert ditampilkan
+            <?php
+            // Pastikan Anda hanya meng-unset setelah nilainya DIBACA oleh JavaScript
+            // Jika Anda sudah meng-unset di bagian atas setelah dibaca, tidak perlu lagi di sini
+            // Namun, jika PHP redirect terjadi sebelum JS sempat membaca, ini akan membantu membersihkan.
+            // Untuk memastikan tidak ada refresh, PHP authlogin.php TIDAK boleh ada header('Location') untuk sukses.
+            // Hanya untuk kegagalan autentikasi sebelum SweetAlert bisa tampil.
+            // Di sini, kita akan mengasumsikan authlogin.php dan authregister.php tidak melakukan redirect untuk kasus sukses,
+            // sehingga SweetAlert bisa mengambil alih.
+            // Maka, unset $_SESSION['login_redirect'] sudah dilakukan di awal file ini.
+            // Cukup unset sisa error messages.
             unset($_SESSION['error_message']);
             unset($_SESSION['register_status']);
             unset($_SESSION['error_message_register']);
             ?>
-    });
+        });
     </script>
 </body>
 
