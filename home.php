@@ -121,7 +121,7 @@
 </section>
 
 <!-- ## Cara Kerja -->
-<section id="cara-kerja" class="bg-gray-50 py-16 md:py-20 dark:bg-gray-900">
+<section id="cara-kerja" class="bg-white py-16 md:py-20 dark:bg-gray-900">
     <div class="container mx-auto px-4">
         <h3 class="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-12 dark:text-white">Bagaimana Cara <span
                 class="text-pink-600 dark:text-pink-400">Melapor?</span></h3>
@@ -159,7 +159,7 @@
 </section>
 
 <!-- Sanksi -->
-<section id="sanksi-penjelasan" class="bg-white py-16 md:py-20 dark:bg-gray-700">
+<section id="sanksi-penjelasan" class="bg-gray-50 py-16 md:py-20 dark:bg-gray-700">
     <div class="container mx-auto px-4">
         <h3 class="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-12 dark:text-white">Sanksi Pelanggaran
             <span class="text-pink-600 dark:text-pink-400">Kasus Bullying dan Pelecehan Seksual</span>
