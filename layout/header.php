@@ -103,6 +103,8 @@ if (session_status() == PHP_SESSION_NONE) {
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Keunggulan</a>
                     <a href="cara_kerja.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Cara Kerja</a>
+                    <a href="sanksi.php"
+                        class="hover:underline hover:text-pink-100 transition-colors duration-200">Sanksi</a>
                     <a href="testimoni.php"
                         class="hover:underline hover:text-pink-100 transition-colors duration-200">Testimoni</a>
                     <a href="FAQ.php" class="hover:underline hover:text-pink-100 transition-colors duration-200">FAQ</a>
