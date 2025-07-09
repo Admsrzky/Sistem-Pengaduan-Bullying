@@ -1,16 +1,19 @@
 <?php
 // detail_laporan.php
 include 'layout/header.php';
-include 'config/database.php';
+include 'config/database.php'; // Pastikan ini menyediakan $conn
 
 // Ambil ID laporan dari parameter GET
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
+$laporan = null;
+$sanksi_data = []; // Inisialisasi array untuk menyimpan data sanksi
+
 // Query ambil data laporan dengan join ke users
 $sql = "SELECT laporan.*, users.nis_nip, users.nama AS nama_pelapor
-        FROM laporan 
-        JOIN users ON laporan.user_id = users.id 
-        WHERE laporan.id = ? 
+        FROM laporan
+        JOIN users ON laporan.user_id = users.id
+        WHERE laporan.id = ?
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
@@ -22,7 +25,7 @@ if ($stmt) {
     if ($result && $result->num_rows > 0) {
         $laporan = $result->fetch_assoc();
         $mediaPath = "uploads/" . htmlspecialchars($laporan['bukti']); // Path lengkap ke file media
-        $status = htmlspecialchars($laporan['status']);
+        $status = htmlspecialchars($laporan['status']); // Nilai status dari DB
         $lokasi = htmlspecialchars($laporan['lokasi']);
         $tanggal = date("d M Y", strtotime($laporan['tanggal_kejadian']));
         $judul = htmlspecialchars($laporan['kronologi']);
@@ -34,12 +37,38 @@ if ($stmt) {
         if (!empty($laporan['bukti'])) {
             $extension = pathinfo($laporan['bukti'], PATHINFO_EXTENSION);
             $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            $videoExtensions = ['mp4', 'webm', 'ogg', 'mov', 'avi']; // Tambahkan ekstensi video lain jika diperlukan
+            $videoExtensions = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
+            $pdfExtensions = ['pdf'];
 
             if (in_array(strtolower($extension), $imageExtensions)) {
                 $mediaType = 'image';
             } elseif (in_array(strtolower($extension), $videoExtensions)) {
                 $mediaType = 'video';
+            } elseif (in_array(strtolower($extension), $pdfExtensions)) {
+                $mediaType = 'pdf';
+            }
+        }
+
+        // --- Perbaikan di sini: Konversi status ke lowercase untuk perbandingan ---
+        // Ini memastikan $normalizedStatus selalu lowercase, sesuai dengan ENUM di DB
+        $normalizedStatus = strtolower($status);
+
+        // Ambil data sanksi jika status laporan 'diproses' atau 'selesai'
+        if ($normalizedStatus === 'diproses' || $normalizedStatus === 'selesai') {
+            $sql_sanksi = "SELECT id, jenis_sanksi, deskripsi, tanggal_mulai, tanggal_selesai, diberikan_oleh
+                           FROM sanksi
+                           WHERE laporan_id = ? ORDER BY tanggal_mulai DESC";
+            $stmt_sanksi = $conn->prepare($sql_sanksi);
+            if ($stmt_sanksi) {
+                $stmt_sanksi->bind_param("i", $id);
+                $stmt_sanksi->execute();
+                $result_sanksi = $stmt_sanksi->get_result();
+                while ($row_sanksi = $result_sanksi->fetch_assoc()) {
+                    $sanksi_data[] = $row_sanksi;
+                }
+                $stmt_sanksi->close();
+            } else {
+                error_log("Error preparing SQL query for sanksi: " . $conn->error);
             }
         }
     } else {
@@ -70,6 +99,18 @@ if (isset($conn)) {
                 <source src="<?= $mediaPath ?>" type="video/<?= strtolower($extension) ?>">
                 Browser Anda tidak mendukung tag video.
             </video>
+        <?php elseif ($mediaType === 'pdf'): ?>
+            <div class="w-full h-80 bg-gray-100 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.414L14.586 5A2 2 0 0115 6.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span class="text-lg font-medium">Dokumen PDF tersedia.</span>
+                <a href="<?= $mediaPath ?>" target="_blank"
+                    class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Lihat PDF</a>
+            </div>
         <?php else: ?>
             <div class="w-full h-80 bg-gray-200 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
@@ -89,10 +130,11 @@ if (isset($conn)) {
                 </h1>
                 <span class="inline-block px-4 py-2 rounded-full text-sm font-semibold
                     <?php
-                    echo $status === 'Terkirim' ? 'bg-yellow-200 text-yellow-800' : ($status === 'Diproses' ? 'bg-blue-200 text-blue-800' : ($status === 'Selesai' ? 'bg-green-200 text-green-800' :
-                        'bg-red-200 text-red-800'));
+                    // Pastikan $normalizedStatus digunakan di sini juga untuk konsistensi warna
+                    echo $normalizedStatus === 'terkirim' ? 'bg-yellow-200 text-yellow-800' : ($normalizedStatus === 'diproses' ? 'bg-blue-200 text-blue-800' : ($normalizedStatus === 'selesai' ? 'bg-green-200 text-green-800' :
+                        'bg-red-200 text-red-800')); // 'ditolak'
                     ?>">
-                    <?= $status ?>
+                    <?= htmlspecialchars(ucfirst($status)) ?>
                 </span>
             </div>
 
@@ -108,11 +150,46 @@ if (isset($conn)) {
                 <p class="text-gray-700 whitespace-pre-wrap leading-relaxed"><?= $judul ?></p>
             </div>
 
+            <?php
+            // --- Tampilkan informasi sanksi jika status laporan 'diproses' atau 'selesai' ---
+            if ($normalizedStatus === 'diproses' || $normalizedStatus === 'selesai'): // <-- Sekarang menggunakan $normalizedStatus
+            ?>
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Sanksi Terkait:</h2>
+                    <?php if (!empty($sanksi_data)): ?>
+                        <div class="space-y-4">
+                            <?php foreach ($sanksi_data as $sanksi): ?>
+                                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                    <p class="text-base font-semibold text-teal-700 mb-1">
+                                        Jenis Sanksi: <?= htmlspecialchars($sanksi['jenis_sanksi']) ?>
+                                    </p>
+                                    <p class="text-sm text-gray-800 mb-2">
+                                        Deskripsi: <?= htmlspecialchars($sanksi['deskripsi']) ?>
+                                    </p>
+                                    <div class="text-xs text-gray-600 flex justify-between">
+                                        <span>
+                                            Tanggal Mulai:
+                                            <?= htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_mulai']))) ?>
+                                            <?= !empty($sanksi['tanggal_selesai']) ? ' - Tanggal Selesai: ' . htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_selesai']))) : '' ?>
+                                        </span>
+                                        <span class="font-medium">Diberikan Oleh:
+                                            <?= htmlspecialchars($sanksi['diberikan_oleh']) ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-gray-600 italic">Belum ada sanksi yang tercatat untuk laporan ini.</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; // End of if status is diproses or selesai
+            ?>
+
         </div>
 
         <a href="index?page=riwayat-laporan" class="mt-8 block w-max mx-auto px-6 py-3 text-white font-semibold rounded-lg shadow-md
-          bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800
-          transition duration-300 ease-in-out mb-6">
+            bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800
+            transition duration-300 ease-in-out mb-6">
             &larr; Kembali ke daftar laporan
         </a>
     </div>

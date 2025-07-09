@@ -2,20 +2,16 @@
 // sipeng/views/admin/export_pdf.php
 
 // Ensure Composer autoloader is included for dompdf
-// Adjust this path if your 'vendor' directory is not two levels up from this script.
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
 // IMPORTANT: Start output buffering at the very beginning to prevent any accidental output
-// This ensures that only the PDF file content is sent to the browser.
 ob_start();
 
-// Include the header or directly the database connection
-// Assuming header.php sets up $conn and handles authentication.
-// Make sure header.php itself doesn't output anything before this script.
-include 'header.php'; // Adjust path if header.php is elsewhere
+// Include the database connection directly or a minimal header if necessary.
+include '../../config/database.php'; // Adjust path if config/database.php is elsewhere
 
 // Set default timezone for consistent date handling
 date_default_timezone_set('Asia/Jakarta');
@@ -43,6 +39,7 @@ if ($is_filter_set && empty($error_message) && isset($conn) && $conn->ping()) {
     $params = [];
     $param_types = '';
 
+    // Existing filters
     if (!empty($filter_day)) {
         $where_clauses[] = "DAY(l.tanggal_kejadian) = ?";
         $params[] = $filter_day;
@@ -59,22 +56,33 @@ if ($is_filter_set && empty($error_message) && isset($conn) && $conn->ping()) {
         $param_types .= 'i';
     }
 
+    // Filter for status = 'selesai'
+    $where_clauses[] = "l.status = ?";
+    $params[] = 'selesai';
+    $param_types .= 's'; // 's' for string status
+
     $sql_fetch_laporan = "
         SELECT
             l.id, l.kronologi, l.lokasi, l.tanggal_kejadian, l.bukti, l.status, l.created_at, l.updated_at,
             kl.nama_kategori,
             u.nama AS nama_pelapor,
-            u.nis_nip AS nisnip_pelapor
+            u.nis_nip AS nisnip_pelapor,
+            s.jenis_sanksi,
+            s.deskripsi AS deskripsi_sanksi,
+            s.tanggal_mulai AS sanksi_tanggal_mulai,
+            s.tanggal_selesai AS sanksi_tanggal_selesai,
+            s.diberikan_oleh AS sanksi_diberikan_oleh
         FROM laporan l
         LEFT JOIN kategori_laporan kl ON l.kategori_id = kl.id
         LEFT JOIN users u ON l.user_id = u.id
+        LEFT JOIN sanksi s ON l.id = s.laporan_id
     ";
 
     if (!empty($where_clauses)) {
         $sql_fetch_laporan .= " WHERE " . implode(" AND ", $where_clauses);
     }
 
-    $sql_fetch_laporan .= " ORDER BY l.created_at DESC";
+    $sql_fetch_laporan .= " ORDER BY l.id DESC, s.id ASC";
 
     $stmt_fetch_laporan = mysqli_prepare($conn, $sql_fetch_laporan);
 
@@ -98,13 +106,11 @@ if ($is_filter_set && empty($error_message) && isset($conn) && $conn->ping()) {
         $error_message = 'Gagal menyiapkan statement fetch laporan: ' . mysqli_error($conn);
     }
 } else {
-    // If filter is not set, redirect back or show an error
     $_SESSION['error_message'] = "Filter tahun harus dipilih untuk mengekspor data PDF.";
-    // Before redirecting, clean the buffer if output started.
     if (ob_get_length() > 0) {
         ob_end_clean();
     }
-    header('Location: data_laporan.php'); // Redirect back to data_laporan page
+    header('Location: data_laporan.php');
     exit();
 }
 
@@ -116,7 +122,6 @@ if (isset($conn)) {
 // --- Generate PDF File ---
 if (!empty($error_message)) {
     $_SESSION['error_message'] = "Gagal mengekspor data PDF: " . $error_message;
-    // Before redirecting, clean the buffer if output started.
     if (ob_get_length() > 0) {
         ob_end_clean();
     }
@@ -126,13 +131,27 @@ if (!empty($error_message)) {
 
 // Create new Dompdf object
 $options = new Options();
-$options->set('defaultFont', 'DejaVu Sans'); // Recommended for wider character support
+$options->set('defaultFont', 'DejaVu Sans');
 $options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true); // Allow loading remote images (like placeholders)
+$options->set('isRemoteEnabled', true);
 $dompdf = new Dompdf($options);
 
-// Output buffering to capture HTML specifically for Dompdf
-// This inner ob_start is specifically for the HTML content that Dompdf will render.
+// Define $months here for the PDF context
+$months = [
+    '01' => 'Januari',
+    '02' => 'Februari',
+    '03' => 'Maret',
+    '04' => 'April',
+    '05' => 'Mei',
+    '06' => 'Juni',
+    '07' => 'Juli',
+    '08' => 'Agustus',
+    '09' => 'September',
+    '10' => 'Oktober',
+    '11' => 'November',
+    '12' => 'Desember'
+];
+
 ob_start();
 ?>
 <!DOCTYPE html>
@@ -141,134 +160,216 @@ ob_start();
 <head>
     <title>Laporan Pengaduan</title>
     <style>
-    /* Define $months here if not globally available, or fetch it again */
-    <?php // This is a simple re-definition for the PDF context if $months isn't global
-    // Or if you only use it here. Adjust as needed.
-    $months=[ '01'=>'Januari',
-    '02'=>'Februari',
-    '03'=>'Maret',
-    '04'=>'April',
-    '05'=>'Mei',
-    '06'=>'Juni',
-    '07'=>'Juli',
-    '08'=>'Agustus',
-    '09'=>'September',
-    '10'=>'Oktober',
-    '11'=>'November',
-    '12'=>'Desember'
-    ];
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 8.5px;
+            color: #333;
+            line-height: 1.3;
+        }
 
-    ?>body {
-        font-family: 'DejaVu Sans', sans-serif;
-        font-size: 10px;
-    }
+        h1 {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-    }
+        h2 {
+            text-align: center;
+            font-size: 12px;
+            margin-bottom: 15px;
+            color: #555;
+            font-weight: normal;
+        }
 
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
 
-    th {
-        background-color: #f2f2f2;
-    }
+        th,
+        td {
+            border: 1px solid #e0e0e0;
+            padding: 5px 3px;
+            text-align: left;
+            vertical-align: top;
+        }
 
-    h1 {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 20px;
-    }
+        th {
+            background-color: #f8f8f8;
+            font-weight: bold;
+            color: #444;
+            text-transform: uppercase;
+        }
 
-    .status-terkirim {
-        color: #f59e0b;
-    }
+        tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
 
-    /* Tailwind yellow-500 */
-    .status-diproses {
-        color: #8b5cf6;
-    }
+        .status-terkirim {
+            color: #f59e0b;
+        }
 
-    /* Tailwind purple-500 */
-    .status-selesai {
-        color: #10b981;
-    }
+        .status-diproses {
+            color: #8b5cf6;
+        }
 
-    /* Tailwind green-500 */
-    .status-ditolak {
-        color: #ef4444;
-    }
+        .status-selesai {
+            color: #10b981;
+        }
 
-    /* Tailwind red-500 */
+        .status-ditolak {
+            color: #ef4444;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            height: 30px;
+            font-size: 8px;
+            color: #777;
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        /* NEW: Styles for signatures */
+        .signatures {
+            width: 100%;
+            margin-top: 30px;
+            display: table;
+            /* Use table display for columns */
+            table-layout: fixed;
+            /* Ensures columns are equal width */
+        }
+
+        .signature-column {
+            width: 50%;
+            /* Two columns */
+            display: table-cell;
+            text-align: center;
+            vertical-align: top;
+            padding: 0 10px;
+        }
+
+        .signature-placeholder {
+            margin-top: 50px;
+            /* Space for signature */
+            /* border-bottom: 1px solid #000; */
+            display: inline-block;
+            width: 80%;
+            height: 1px;
+            /* Line for signature */
+        }
+
+        .signature-name {
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .signature-nip {
+            font-weight: bold;
+            display: flex;
+            align-items: start;
+            justify-content: start;
+        }
+
+        .signature-title {
+            font-size: 8px;
+            color: #555;
+            margin-top: 2px;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Laporan Data Pengaduan</h1>
-    <p>Periode Filter:
-        <?php
-        $filter_info = [];
-        if (!empty($filter_day)) $filter_info[] = "Tanggal: " . htmlspecialchars($filter_day);
-        if (!empty($filter_month)) $filter_info[] = "Bulan: " . htmlspecialchars($months[$filter_month] ?? $filter_month);
-        if (!empty($filter_year)) $filter_info[] = "Tahun: " . htmlspecialchars($filter_year);
-        echo implode(", ", $filter_info);
-        ?>
-    </p>
+    <h1>Rekapitulasi Data Laporan Pengaduan</h1>
+    <br>
+
     <table>
         <thead>
             <tr>
-                <th>No.</th>
-                <th>Pelapor (NIS/NIP)</th>
-                <th>Kategori</th>
-                <th>Kronologi</th>
-                <th>Lokasi</th>
-                <th>Tgl. Kejadian</th>
-                <th>Status</th>
-                <th>Dibuat Pada</th>
-                <th>Terakhir Diubah</th>
+                <th style="width: 3%;">No.</th>
+                <th style="width: 10%;">Pelapor (NIS/NIP)</th>
+                <th style="width: 8%;">Kategori</th>
+                <th style="width: 15%;">Kronologi</th>
+                <th style="width: 8%;">Lokasi</th>
+                <th style="width: 8%;">Tgl. Kejadian</th>
+                <th style="width: 8%;">Status</th>
+                <th style="width: 8%;">Jenis Sanksi</th>
+                <th style="width: 15%;">Deskripsi Sanksi</th>
+                <th style="width: 8%;">Dibuat Pada</th>
+                <th style="width: 8%;">Terakhir Diubah</th>
             </tr>
         </thead>
         <tbody>
             <?php if (!empty($laporan_data)): ?>
-            <?php $no = 1; ?>
-            <?php foreach ($laporan_data as $laporan): ?>
-            <tr>
-                <td><?= $no++; ?></td>
-                <td>
-                    <?= htmlspecialchars($laporan['nama_pelapor'] ?? 'N/A') ?><br>
-                    <span
-                        style="font-size: 9px; color: #555;">(<?= htmlspecialchars($laporan['nisnip_pelapor'] ?? 'N/A') ?>)</span>
-                </td>
-                <td><?= htmlspecialchars($laporan['nama_kategori'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars(mb_strimwidth($laporan['kronologi'] ?? '', 0, 100, "...")) ?></td>
-                <td><?= htmlspecialchars($laporan['lokasi'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars($laporan['tanggal_kejadian'] ? date('d M Y', strtotime($laporan['tanggal_kejadian'])) : 'N/A') ?>
-                </td>
-                <td>
-                    <span class="status-<?= htmlspecialchars($laporan['status']) ?>">
-                        <?= htmlspecialchars(ucfirst($laporan['status'] ?? 'N/A')) ?>
-                    </span>
-                </td>
-                <td><?= htmlspecialchars($laporan['created_at'] ? date('d M Y H:i', strtotime($laporan['created_at'])) : 'N/A') ?>
-                </td>
-                <td><?= htmlspecialchars($laporan['updated_at'] ? date('d M Y H:i', strtotime($laporan['updated_at'])) : 'N/A') ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
+                <?php $no = 1; ?>
+                <?php foreach ($laporan_data as $laporan): ?>
+                    <tr>
+                        <td><?= $no++; ?></td>
+                        <td>
+                            <?= htmlspecialchars($laporan['nama_pelapor'] ?? 'N/A') ?><br>
+                            <span
+                                style="font-size: 7.5px; color: #555;">(<?= htmlspecialchars($laporan['nisnip_pelapor'] ?? 'N/A') ?>)</span>
+                        </td>
+                        <td><?= htmlspecialchars($laporan['nama_kategori'] ?? 'N/A') ?></td>
+                        <td><?= htmlspecialchars(mb_strimwidth($laporan['kronologi'] ?? '', 0, 80, "...")) ?></td>
+                        <td><?= htmlspecialchars($laporan['lokasi'] ?? 'N/A') ?></td>
+                        <td><?= htmlspecialchars($laporan['tanggal_kejadian'] ? date('d M Y', strtotime($laporan['tanggal_kejadian'])) : 'N/A') ?>
+                        </td>
+                        <td>
+                            <span class="status-<?= htmlspecialchars($laporan['status']) ?>">
+                                <?= htmlspecialchars(ucfirst($laporan['status'] ?? 'N/A')) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($laporan['jenis_sanksi'] ?? 'N/A') ?>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars(mb_strimwidth($laporan['deskripsi_sanksi'] ?? 'N/A', 0, 80, "...")) ?>
+                        </td>
+                        <td><?= htmlspecialchars($laporan['created_at'] ? date('d M Y H:i', strtotime($laporan['created_at'])) : 'N/A') ?>
+                        </td>
+                        <td><?= htmlspecialchars($laporan['updated_at'] ? date('d M Y H:i', strtotime($laporan['updated_at'])) : 'N/A') ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             <?php else: ?>
-            <tr>
-                <td colspan="9" style="text-align: center;">Tidak ada data laporan ditemukan dengan filter saat ini.
-                </td>
-            </tr>
+                <tr>
+                    <td colspan="11" class="text-center">Tidak ada data laporan ditemukan dengan filter saat ini.
+                    </td>
+                </tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <div class="signatures">
+        <div class="signature-column">
+            <p>Mengetahui,</p>
+            <p class="signature-title">Kepala Guru BK</p>
+            <div class="signature-placeholder"></div>
+            <p class="signature-name">(ucu)</p>
+            <p class="signature-nip">NIP : 202112019 </p>
+        </div>
+        <div class="signature-column">
+            <p>Cilegon, <?= date('d') . ' ' . ($months[date('m')] ?? date('m')) . ' ' . date('Y') ?></p>
+            <p class="signature-title">Kepala Sekolah</p>
+            <div class="signature-placeholder"></div>
+            <p class="signature-name">( Dra. Hj. Maryati, M.Pd)</p>
+            <p class="signature-nip">NIP : </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Dicetak pada: <?= date('d M Y H:i:s') ?>
+    </div>
 </body>
 
 </html>
@@ -284,7 +385,6 @@ $dompdf->setPaper('A4', 'landscape'); // 'portrait' or 'landscape'
 $dompdf->render();
 
 // Clear any global output buffer that might have been started before (e.g., from header.php)
-// This is critical to ensure only the PDF binary is sent.
 if (ob_get_length() > 0) {
     ob_end_clean();
 }

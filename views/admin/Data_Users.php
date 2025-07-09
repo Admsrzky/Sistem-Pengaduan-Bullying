@@ -11,17 +11,17 @@ include '../../controllers/UsersController.php';
     </h2>
 
     <?php if ($success_message): ?>
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <strong class="font-bold">Sukses!</strong>
-        <span class="block sm:inline"><?= $success_message ?></span>
-    </div>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Sukses!</strong>
+            <span class="block sm:inline"><?= $success_message ?></span>
+        </div>
     <?php endif; ?>
 
     <?php if ($error_message): ?>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <strong class="font-bold">Error!</strong>
-        <span class="block sm:inline"><?= $error_message ?></span>
-    </div>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline"><?= $error_message ?></span>
+        </div>
     <?php endif; ?>
 
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
@@ -75,8 +75,8 @@ include '../../controllers/UsersController.php';
                         class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         <option value="">Pilih Jabatan</option>
                         <?php foreach ($jabatan_options as $jabatan): ?>
-                        <option value="<?= htmlspecialchars($jabatan['id']) ?>">
-                            <?= htmlspecialchars($jabatan['nama_jabatan']) ?></option>
+                            <option value="<?= htmlspecialchars($jabatan['id']) ?>">
+                                <?= htmlspecialchars($jabatan['nama_jabatan']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -91,8 +91,8 @@ include '../../controllers/UsersController.php';
                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                             <option value="">Pilih Jurusan</option>
                             <?php foreach ($jurusan_options as $jurusan): ?>
-                            <option value="<?= htmlspecialchars($jurusan['id']) ?>">
-                                <?= htmlspecialchars($jurusan['nama_jurusan']) ?></option>
+                                <option value="<?= htmlspecialchars($jurusan['id']) ?>">
+                                    <?= htmlspecialchars($jurusan['nama_jurusan']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -104,8 +104,8 @@ include '../../controllers/UsersController.php';
                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                             <option value="">Pilih Kelas</option>
                             <?php foreach ($kelas_options as $kelas): ?>
-                            <option value="<?= htmlspecialchars($kelas['id']) ?>">
-                                <?= htmlspecialchars($kelas['nama_kelas']) ?></option>
+                                <option value="<?= htmlspecialchars($kelas['id']) ?>">
+                                    <?= htmlspecialchars($kelas['nama_kelas']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -170,75 +170,75 @@ include '../../controllers/UsersController.php';
                 </thead>
                 <tbody>
                     <?php if (empty($users_data)): ?>
-                    <tr>
-                        <td colspan="10"
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200 text-center">
-                            Tidak ada data user.
-                        </td>
-                    </tr>
+                        <tr>
+                            <td colspan="10"
+                                class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200 text-center">
+                                Tidak ada data user.
+                            </td>
+                        </tr>
                     <?php else: ?>
-                    <?php $no = 1; // Initialize $no BEFORE the loop
+                        <?php $no = 1; // Initialize $no BEFORE the loop
                         ?>
-                    <?php foreach ($users_data as $user): ?>
-                    <tr>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= $no++; ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= htmlspecialchars($user['nis_nip'] ?? '') ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= htmlspecialchars($user['nama'] ?? '') ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= htmlspecialchars(ucfirst($user['role'] ?? '')) ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <img src="<?= $asset_base_path_users . htmlspecialchars($user['foto_profile'] ?? 'default.png') ?>"
-                                alt="Foto Profil" class="w-10 h-10 rounded-full object-cover">
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= htmlspecialchars($user['created_at'] ? date('d M Y H:i', strtotime($user['created_at'])) : 'N/A') ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                            <?= htmlspecialchars($user['updated_at'] ? date('d M Y H:i', strtotime($user['updated_at'])) : 'N/A') ?>
-                        </td>
-                        <td
-                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                            <div class="flex items-center space-x-2">
-                                <button
-                                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200 edit-btn"
-                                    data-id="<?= htmlspecialchars($user['id'] ?? '') ?>"
-                                    data-nisnip="<?= htmlspecialchars($user['nis_nip'] ?? '') ?>"
-                                    data-nama="<?= htmlspecialchars($user['nama'] ?? '') ?>"
-                                    data-role="<?= htmlspecialchars($user['role'] ?? '') ?>"
-                                    data-foto="<?= htmlspecialchars($user['foto_profile'] ?? '') ?>"
-                                    data-jabatan="<?= htmlspecialchars($user['jabatan_id'] ?? '') ?>"
-                                    data-jurusan="<?= htmlspecialchars($user['jurusan_id'] ?? '') ?>"
-                                    data-kelas="<?= htmlspecialchars($user['kelas_id'] ?? '') ?>">
-                                    <i data-feather="edit" class="w-5 h-5"></i>
-                                </button>
-                                <form action="" method="POST"
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="delete_id_user"
-                                        value="<?= htmlspecialchars($user['id'] ?? '') ?>">
-                                    <button type="submit"
-                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
-                                        <i data-feather="trash-2" class="w-5 h-5"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($users_data as $user): ?>
+                            <tr>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= $no++; ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= htmlspecialchars($user['nis_nip'] ?? '') ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= htmlspecialchars($user['nama'] ?? '') ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= htmlspecialchars(ucfirst($user['role'] ?? '')) ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <img src="<?= $asset_base_path_users . htmlspecialchars($user['foto_profile'] ?? 'avatar2.png') ?>"
+                                        alt="Foto Profil" class="w-10 h-10 rounded-full object-cover">
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= htmlspecialchars($user['created_at'] ? date('d M Y H:i', strtotime($user['created_at'])) : 'N/A') ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
+                                    <?= htmlspecialchars($user['updated_at'] ? date('d M Y H:i', strtotime($user['updated_at'])) : 'N/A') ?>
+                                </td>
+                                <td
+                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        <button
+                                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200 edit-btn"
+                                            data-id="<?= htmlspecialchars($user['id'] ?? '') ?>"
+                                            data-nisnip="<?= htmlspecialchars($user['nis_nip'] ?? '') ?>"
+                                            data-nama="<?= htmlspecialchars($user['nama'] ?? '') ?>"
+                                            data-role="<?= htmlspecialchars($user['role'] ?? '') ?>"
+                                            data-foto="<?= htmlspecialchars($user['foto_profile'] ?? '') ?>"
+                                            data-jabatan="<?= htmlspecialchars($user['jabatan_id'] ?? '') ?>"
+                                            data-jurusan="<?= htmlspecialchars($user['jurusan_id'] ?? '') ?>"
+                                            data-kelas="<?= htmlspecialchars($user['kelas_id'] ?? '') ?>">
+                                            <i data-feather="edit" class="w-5 h-5"></i>
+                                        </button>
+                                        <form action="" method="POST"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="delete_id_user"
+                                                value="<?= htmlspecialchars($user['id'] ?? '') ?>">
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
+                                                <i data-feather="trash-2" class="w-5 h-5"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -297,8 +297,8 @@ include '../../controllers/UsersController.php';
                         class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         <option value="">Pilih Jabatan</option>
                         <?php foreach ($jabatan_options as $jabatan): ?>
-                        <option value="<?= htmlspecialchars($jabatan['id']) ?>">
-                            <?= htmlspecialchars($jabatan['nama_jabatan']) ?></option>
+                            <option value="<?= htmlspecialchars($jabatan['id']) ?>">
+                                <?= htmlspecialchars($jabatan['nama_jabatan']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -313,8 +313,8 @@ include '../../controllers/UsersController.php';
                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                             <option value="">Pilih Jurusan</option>
                             <?php foreach ($jurusan_options as $jurusan): ?>
-                            <option value="<?= htmlspecialchars($jurusan['id']) ?>">
-                                <?= htmlspecialchars($jurusan['nama_jurusan']) ?></option>
+                                <option value="<?= htmlspecialchars($jurusan['id']) ?>">
+                                    <?= htmlspecialchars($jurusan['nama_jurusan']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -327,8 +327,8 @@ include '../../controllers/UsersController.php';
                             class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
                             <option value="">Pilih Kelas</option>
                             <?php foreach ($kelas_options as $kelas): ?>
-                            <option value="<?= htmlspecialchars($kelas['id']) ?>">
-                                <?= htmlspecialchars($kelas['nama_kelas']) ?></option>
+                                <option value="<?= htmlspecialchars($kelas['id']) ?>">
+                                    <?= htmlspecialchars($kelas['nama_kelas']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
