@@ -1,101 +1,121 @@
 <?php
+include '../../config/database.php';
 
-// Initialize variables for messages
-$success_message = '';
-$error_message = '';
+/**
+ * =================================================================
+ * JurusanController.php (Versi Notifikasi via URL)
+ * =================================================================
+ * Controller ini menangani logika data jurusan dan mengirimkan status
+ * notifikasi melalui parameter URL (GET) setelah setiap aksi.
+ */
 
-// Check for messages passed via session (from previous operations like add/edit/delete)
-if (isset($_SESSION['success_message'])) {
-    $success_message = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
-}
-if (isset($_SESSION['error_message'])) {
-    $error_message = $_SESSION['error_message'];
-    unset($_SESSION['error_message']);
-}
+// session_start() tidak lagi diperlukan untuk notifikasi ini.
 
-// Ensure database connection is available
-if (!isset($conn) || $conn->connect_error) {
-    $error_message = "Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error');
-}
+// Diasumsikan koneksi database '$conn' sudah tersedia dari file yang meng-include controller ini.
 
-// --- Handle Form Submissions (Add/Edit/Delete) ---
-// This block will process the form submissions for managing 'jurusan' data.
-// We'll use a hidden 'action' field in the form to determine the operation.
+// =================================================================
+// BAGIAN PEMROSESAN FORM (CREATE, UPDATE, DELETE)
+// =================================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error_message)) {
+    if (!isset($conn) || $conn->connect_error) {
+        $errorMsg = urlencode("Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error'));
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?status=error&msg=' . $errorMsg);
+        exit();
+    }
+
     $action = $_POST['action'] ?? '';
+    $redirectUrl = $_SERVER['PHP_SELF']; // Halaman tujuan redirect
 
     switch ($action) {
         case 'add':
-            $nama_jurusan = mysqli_real_escape_string($conn, $_POST['nama_jurusan'] ?? '');
+            $nama_jurusan = trim($_POST['nama_jurusan'] ?? '');
             if (!empty($nama_jurusan)) {
-                $sql = "INSERT INTO jurusan (nama_jurusan) VALUES ('$nama_jurusan')";
+                $safe_nama_jurusan = mysqli_real_escape_string($conn, $nama_jurusan);
+                $sql = "INSERT INTO jurusan (nama_jurusan) VALUES ('$safe_nama_jurusan')";
+
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Jurusan berhasil ditambahkan!';
+                    $status = 'success';
+                    $msg = 'Jurusan baru berhasil ditambahkan!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal menambahkan jurusan: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal menambahkan jurusan: ' . mysqli_error($conn);
                 }
             } else {
-                $_SESSION['error_message'] = 'Nama Jurusan tidak boleh kosong.';
+                $status = 'error';
+                $msg = 'Nama Jurusan tidak boleh kosong.';
             }
             break;
 
         case 'edit':
-            $id_jurusan = mysqli_real_escape_string($conn, $_POST['id_jurusan'] ?? '');
-            $nama_jurusan = mysqli_real_escape_string($conn, $_POST['nama_jurusan'] ?? '');
+            $id_jurusan = trim($_POST['id_jurusan'] ?? '');
+            $nama_jurusan = trim($_POST['nama_jurusan'] ?? '');
+
             if (!empty($id_jurusan) && !empty($nama_jurusan)) {
-                $sql = "UPDATE jurusan SET nama_jurusan = '$nama_jurusan' WHERE id = '$id_jurusan'";
+                $safe_id_jurusan = mysqli_real_escape_string($conn, $id_jurusan);
+                $safe_nama_jurusan = mysqli_real_escape_string($conn, $nama_jurusan);
+                $sql = "UPDATE jurusan SET nama_jurusan = '$safe_nama_jurusan' WHERE id = '$safe_id_jurusan'";
+
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Jurusan berhasil diubah!';
+                    $status = 'success';
+                    $msg = 'Data Jurusan berhasil diubah!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal mengubah jurusan: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal mengubah data jurusan: ' . mysqli_error($conn);
                 }
             } else {
-                $_SESSION['error_message'] = 'ID Jurusan atau Nama Jurusan tidak boleh kosong.';
+                $status = 'error';
+                $msg = 'ID atau Nama Jurusan tidak boleh kosong.';
             }
             break;
 
         case 'delete':
-            $id_jurusan = mysqli_real_escape_string($conn, $_POST['id_jurusan'] ?? '');
+            $id_jurusan = trim($_POST['id_jurusan'] ?? '');
             if (!empty($id_jurusan)) {
-                $sql = "DELETE FROM jurusan WHERE id = '$id_jurusan'";
+                $safe_id_jurusan = mysqli_real_escape_string($conn, $id_jurusan);
+                $sql = "DELETE FROM jurusan WHERE id = '$safe_id_jurusan'";
+
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Jurusan berhasil dihapus!';
+                    $status = 'success';
+                    $msg = 'Jurusan berhasil dihapus!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal menghapus jurusan: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal menghapus jurusan.';
                 }
             } else {
-                $_SESSION['error_message'] = 'ID Jurusan tidak boleh kosong untuk menghapus.';
+                $status = 'error';
+                $msg = 'ID Jurusan tidak valid untuk penghapusan.';
             }
             break;
 
         default:
-            $_SESSION['error_message'] = 'Aksi tidak valid.';
+            $status = 'error';
+            $msg = 'Aksi yang diminta tidak valid.';
             break;
     }
 
-    // Redirect to prevent form resubmission and display messages
-    // header('Location: Data_jurusan.php'); // Pastikan ini adalah nama file yang benar
-    // exit();
+    // Redirect ke halaman tampilan dengan membawa status dan pesan
+    // urlencode() penting untuk memastikan pesan tidak merusak URL
+    header('Location: ' . $redirectUrl . '?status=' . $status . '&msg=' . urlencode($msg));
+    exit();
 }
 
-// --- Fetch All Jurusan Data for Display ---
+
+// =================================================================
+// BAGIAN PENGAMBILAN DATA (READ)
+// =================================================================
 $jurusan_data = [];
-if (empty($error_message)) { // Only fetch if no database connection errors
-    // Memilih kolom 'id' tetapi tidak menampilkannya di tabel
-    $sql_fetch_jurusan = "SELECT id, nama_jurusan FROM jurusan ORDER BY nama_jurusan ASC";
-    $result_fetch_jurusan = mysqli_query($conn, $sql_fetch_jurusan);
+$fetch_error = '';
 
-    if ($result_fetch_jurusan) {
-        while ($row = mysqli_fetch_assoc($result_fetch_jurusan)) {
-            $jurusan_data[] = $row;
-        }
+if (!isset($conn) || $conn->connect_error) {
+    $fetch_error = "Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error');
+} else {
+    $sql_fetch = "SELECT id, nama_jurusan FROM jurusan ORDER BY nama_jurusan ASC";
+    $result = mysqli_query($conn, $sql_fetch);
+
+    if ($result) {
+        $jurusan_data = mysqli_fetch_all($result, MYSQLI_ASSOC);
     } else {
-        $error_message = 'Gagal mengambil data jurusan: ' . mysqli_error($conn);
+        $fetch_error = 'Gagal mengambil data jurusan: ' . mysqli_error($conn);
     }
-}
-// Close connection after all operations
-if (isset($conn)) {
-    mysqli_close($conn);
 }

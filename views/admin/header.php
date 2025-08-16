@@ -163,6 +163,7 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
     <script src="https://unpkg.com/feather-icons"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/simple-lightbox@2.14.2/dist/simple-lightbox.min.css" rel="stylesheet">
 
@@ -173,54 +174,54 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
 <script src="../../assets/js/script.js"></script>
 
 <style>
-/* CSS untuk Profile Picture Container */
-.profile-img-container {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    background-color: #e2e8f0;
-    /* bg-gray-200 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 2px solid #cbd5e0;
-    /* border-gray-300 */
-}
+    /* CSS untuk Profile Picture Container */
+    .profile-img-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #e2e8f0;
+        /* bg-gray-200 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 2px solid #cbd5e0;
+        /* border-gray-300 */
+    }
 
-.profile-img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+    .profile-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-.profile-img-container input[type="file"] {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
+    .profile-img-container input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
 
-.profile-img-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
+    .profile-img-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
 
-.profile-img-container:hover .profile-img-overlay {
-    opacity: 1;
-}
+    .profile-img-container:hover .profile-img-overlay {
+        opacity: 1;
+    }
 </style>
 </head>
 
@@ -247,12 +248,12 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
                     <div class="flex items-center space-x-4">
                         <div class="relative">
                             <?php if ($user_role === 'admin'): ?>
-                            <button class="text-gray-500 dark:text-gray-400 focus:outline-none" id="notification-btn">
-                                <i data-feather="bell"></i>
-                                <?php if (!empty($latest_reports)): ?>
-                                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                                <?php endif; ?>
-                            </button>
+                                <button class="text-gray-500 dark:text-gray-400 focus:outline-none" id="notification-btn">
+                                    <i data-feather="bell"></i>
+                                    <?php if (!empty($latest_reports)): ?>
+                                        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                                    <?php endif; ?>
+                                </button>
                             <?php endif; ?>
                             <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hidden z-10"
                                 id="notification-dropdown">
@@ -262,31 +263,31 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
                                         echo '<p class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Laporan Terbaru:</p>'; // Judul untuk daftar laporan
                                         foreach ($latest_reports as $report) {
                                     ?>
-                                    <div
-                                        class="flex items-start mb-3 last:mb-0 border-b border-gray-100 dark:border-gray-700 pb-2">
-                                        <div class="flex-shrink-0 mt-1">
-                                            <i data-feather="file-text" class="text-blue-500 w-4 h-4"></i>
-                                        </div>
-                                        <div class="ml-3 flex-1">
-                                            <a href="Data_Pengaduan.php?id=<?= htmlspecialchars($report['id']) ?>"
-                                                class="block">
-                                                <p
-                                                    class="text-sm font-medium text-gray-900 dark:text-white leading-tight">
-                                                    <?= htmlspecialchars($report['subject'] ?? 'Tanpa Subjek') ?>
-                                                </p>
-                                            </a>
-                                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                                <?= htmlspecialchars($report['time_ago'] ?? 'Baru saja') ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <?php
+                                            <div
+                                                class="flex items-start mb-3 last:mb-0 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                                <div class="flex-shrink-0 mt-1">
+                                                    <i data-feather="file-text" class="text-blue-500 w-4 h-4"></i>
+                                                </div>
+                                                <div class="ml-3 flex-1">
+                                                    <a href="Data_Pengaduan.php?id=<?= htmlspecialchars($report['id']) ?>"
+                                                        class="block">
+                                                        <p
+                                                            class="text-sm font-medium text-gray-900 dark:text-white leading-tight">
+                                                            <?= htmlspecialchars($report['subject'] ?? 'Tanpa Subjek') ?>
+                                                        </p>
+                                                    </a>
+                                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                                        <?= htmlspecialchars($report['time_ago'] ?? 'Baru saja') ?>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        <?php
                                         }
                                     } else {
                                         ?>
-                                    <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-                                        Tidak ada laporan baru.
-                                    </div>
+                                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                                            Tidak ada laporan baru.
+                                        </div>
                                     <?php
                                     }
                                     ?>

@@ -187,7 +187,7 @@ if (isset($conn)) {
 
         </div>
 
-        <a href="index?page=riwayat-laporan" class="mt-8 block w-max mx-auto px-6 py-3 text-white font-semibold rounded-lg shadow-md
+        <a href="riwayat-laporan.php" class="mt-8 block w-max mx-auto px-6 py-3 text-white font-semibold rounded-lg shadow-md
             bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 hover:from-pink-600 hover:via-pink-700 hover:to-pink-800
             transition duration-300 ease-in-out mb-6">
             &larr; Kembali ke daftar laporan

@@ -1,229 +1,139 @@
 <?php
-include 'header.php'; // Pastikan header.php ada dan menyediakan koneksi $conn
-
-// Include the new SanksiController
+// 1. Sertakan Controller di bagian paling atas
 include '../../controllers/SanksiController.php';
 
-// Inisialisasi pesan sukses/error (variabel ini akan diatur di SanksiController.php)
-$success_message = $_SESSION['success_message'] ?? '';
-$error_message = $_SESSION['error_message'] ?? '';
+// 2. Sertakan header setelah controller
+include 'header.php';
 
-// Hapus pesan dari session setelah dibaca
-unset($_SESSION['success_message']);
-unset($_SESSION['error_message']);
-
-// Inisialisasi SanksiController
-$sanksiController = new SanksiController($conn);
-
-// Ambil data sanksi dari controller (sekarang sudah termasuk kronologi)
-$sanksi_data = $sanksiController->getAllSanksi();
-
-// Ambil daftar laporan dari controller untuk dropdown
-$laporan_list = $sanksiController->getAllLaporan();
+// 3. Ambil status dan pesan dari URL untuk notifikasi SweetAlert
+$status = isset($_GET['status']) ? $_GET['status'] : '';
+$msg = isset($_GET['msg']) ? $_GET['msg'] : '';
 ?>
 
-<main class="flex-1 p-6 overflow-y-auto">
-    <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">
+<main class="flex-1 p-6 overflow-y-auto bg-gray-800">
+    <h2 class="text-3xl font-bold text-gray-200 mb-6">
         Manajemen Data Sanksi
     </h2>
 
-    <?php if ($success_message): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold">Sukses!</strong>
-            <span class="block sm:inline"><?= $success_message ?></span>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($error_message): ?>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline"><?= $error_message ?></span>
-        </div>
-    <?php endif; ?>
-
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Tambah Sanksi Baru</h3>
+    <!-- Form Tambah Sanksi -->
+    <div class="bg-gray-900 p-8 rounded-xl shadow-lg mb-8">
+        <h3 class="text-2xl font-semibold text-gray-200 mb-5">Tambah Sanksi Baru</h3>
         <form action="" method="POST">
             <input type="hidden" name="action" value="add">
-
-            <div class="mb-4">
-                <label for="add_laporan_id" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Laporan Terkait
-                </label>
-                <select id="add_laporan_id" name="laporan_id" required
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <option value="">Pilih Laporan</option>
-                    <?php foreach ($laporan_list as $laporan): ?>
-                        <option value="<?= htmlspecialchars($laporan['id']) ?>">
-                            ID: <?= htmlspecialchars($laporan['id']) ?> - Kronologi:
-                            <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) ?><?= (strlen($laporan['kronologi']) > 50 ? '...' : '') ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="mb-4">
+                        <label for="add_laporan_id" class="block text-gray-400 text-sm font-bold mb-2">Laporan
+                            Terkait</label>
+                        <select id="add_laporan_id" name="laporan_id" required
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Pilih Laporan (Hanya yang berstatus "diproses")</option>
+                            <?php foreach ($laporan_options as $laporan): ?>
+                                <option value="<?= htmlspecialchars($laporan['id']) ?>">
+                                    ID: <?= htmlspecialchars($laporan['id']) ?> -
+                                    <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) ?>...
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="add_jenis_sanksi" class="block text-gray-400 text-sm font-bold mb-2">Jenis
+                            Sanksi</label>
+                        <select id="add_jenis_sanksi" name="jenis_sanksi" required
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Pilih Jenis Sanksi</option>
+                            <option value="Ringan">Ringan</option>
+                            <option value="Berat">Berat</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="add_deskripsi" class="block text-gray-400 text-sm font-bold mb-2">Deskripsi</label>
+                        <textarea id="add_deskripsi" name="deskripsi" rows="4"
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Masukkan deskripsi sanksi"></textarea>
+                    </div>
+                </div>
+                <div>
+                    <div class="mb-4">
+                        <label for="add_tanggal_mulai" class="block text-gray-400 text-sm font-bold mb-2">Tanggal
+                            Mulai</label>
+                        <input type="date" id="add_tanggal_mulai" name="tanggal_mulai"
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="add_tanggal_selesai" class="block text-gray-400 text-sm font-bold mb-2">Tanggal
+                            Selesai (Opsional)</label>
+                        <input type="date" id="add_tanggal_selesai" name="tanggal_selesai"
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="add_diberikan_oleh" class="block text-gray-400 text-sm font-bold mb-2">Diberikan
+                            Oleh</label>
+                        <input type="text" id="add_diberikan_oleh" name="diberikan_oleh"
+                            class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Nama pemberi sanksi" value="Guru Bk" required>
+                    </div>
+                </div>
             </div>
-
-            <div class="mb-4">
-                <label for="add_jenis_sanksi" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Jenis Sanksi
-                </label>
-                <select id="add_jenis_sanksi" name="jenis_sanksi" required
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <option value="">Pilih Jenis Sanksi</option>
-                    <option value="Ringan">Ringan</option>
-                    <option value="Berat">Berat</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label for="add_deskripsi" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Deskripsi
-                </label>
-                <textarea id="add_deskripsi" name="deskripsi" rows="3"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    placeholder="Masukkan deskripsi sanksi"></textarea>
-            </div>
-
-            <div class="mb-4">
-                <label for="add_tanggal_mulai" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Tanggal Mulai
-                </label>
-                <input type="date" id="add_tanggal_mulai" name="tanggal_mulai"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    required>
-            </div>
-
-            <div class="mb-4">
-                <label for="add_tanggal_selesai" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Tanggal Selesai (Opsional)
-                </label>
-                <input type="date" id="add_tanggal_selesai" name="tanggal_selesai"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
-            </div>
-
-            <div class="mb-4">
-                <label for="add_diberikan_oleh" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                    Diberikan Oleh
-                </label>
-                <input type="text" id="add_diberikan_oleh" name="diberikan_oleh"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    placeholder="Nama pemberi sanksi (misal: Guru Bk)" required>
-            </div>
-
             <button type="submit"
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline transition-transform transform hover:scale-105">
                 Tambah Sanksi
             </button>
         </form>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Daftar Sanksi</h3>
+    <!-- Tabel Daftar Sanksi -->
+    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
+        <h3 class="text-2xl font-semibold text-gray-200 mb-5">Daftar Sanksi</h3>
         <div class="overflow-x-auto">
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr>
                         <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            No.
-                        </th>
+                            class="px-5 py-3 border-b-2 border-gray-700 bg-gray-800 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Laporan</th>
                         <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            ID Laporan
-                        </th>
+                            class="px-5 py-3 border-b-2 border-gray-700 bg-gray-800 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Jenis Sanksi</th>
                         <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Kronologi Laporan
-                        </th>
+                            class="px-5 py-3 border-b-2 border-gray-700 bg-gray-800 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Masa Berlaku</th>
                         <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Jenis Sanksi
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Deskripsi
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Tgl Mulai
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Tgl Selesai
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Diberikan Oleh
-                        </th>
-                        <th
-                            class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                            Aksi
-                        </th>
+                            class="px-5 py-3 border-b-2 border-gray-700 bg-gray-800 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($sanksi_data)): ?>
+                    <?php if (!empty($fetch_error)): ?>
                         <tr>
-                            <td colspan="9"
-                                class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200 text-center">
-                                Tidak ada data sanksi.
+                            <td colspan="4" class="px-5 py-5 text-center text-red-400"><?= htmlspecialchars($fetch_error) ?>
                             </td>
                         </tr>
+                    <?php elseif (empty($sanksi_data)): ?>
+                        <tr>
+                            <td colspan="4" class="px-5 py-5 text-center text-gray-500">Tidak ada data sanksi.</td>
+                        </tr>
                     <?php else: ?>
-                        <?php $no = 1; ?>
                         <?php foreach ($sanksi_data as $sanksi): ?>
-                            <tr>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= $no++; ?>
+                            <tr class="hover:bg-gray-800">
+                                <td class="px-5 py-4 border-b border-gray-700 text-sm">
+                                    <p class="text-gray-200 whitespace-no-wrap font-semibold">ID:
+                                        <?= htmlspecialchars($sanksi['laporan_id']) ?></p>
+                                    <p class="text-gray-500 whitespace-no-wrap">
+                                        <?= htmlspecialchars(substr($sanksi['laporan_kronologi'], 0, 50)) ?>...</p>
                                 </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= htmlspecialchars($sanksi['laporan_id']) ?>
+                                <td class="px-5 py-4 border-b border-gray-700 text-sm">
+                                    <p class="text-gray-300"><?= htmlspecialchars($sanksi['jenis_sanksi']) ?></p>
                                 </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?php
-                                    // Tampilkan kronologi laporan, potong jika terlalu panjang
-                                    $kronologi_display = htmlspecialchars($sanksi['laporan_kronologi'] ?? 'N/A');
-                                    if (strlen($kronologi_display) > 70) { // Sesuaikan panjang yang diinginkan
-                                        echo substr($kronologi_display, 0, 70) . '...';
-                                    } else {
-                                        echo $kronologi_display;
-                                    }
-                                    ?>
+                                <td class="px-5 py-4 border-b border-gray-700 text-sm">
+                                    <p class="text-gray-300"><?= date('d M Y', strtotime($sanksi['tanggal_mulai'])) ?> -
+                                        <?= $sanksi['tanggal_selesai'] ? date('d M Y', strtotime($sanksi['tanggal_selesai'])) : 'Selesai' ?>
+                                    </p>
                                 </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= htmlspecialchars($sanksi['jenis_sanksi']) ?>
-                                </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?php
-                                    $deskripsi_display = htmlspecialchars($sanksi['deskripsi']);
-                                    if (strlen($deskripsi_display) > 70) { // Sesuaikan panjang yang diinginkan
-                                        echo substr($deskripsi_display, 0, 70) . '...';
-                                    } else {
-                                        echo $deskripsi_display;
-                                    }
-                                    ?>
-                                </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= htmlspecialchars($sanksi['tanggal_mulai']) ?>
-                                </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= htmlspecialchars($sanksi['tanggal_selesai'] ?? '-') ?>
-                                </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-200">
-                                    <?= htmlspecialchars($sanksi['diberikan_oleh']) ?>
-                                </td>
-                                <td
-                                    class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                    <div class="flex items-center space-x-2">
-                                        <button
-                                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200 edit-btn"
+                                <td class="px-5 py-4 border-b border-gray-700 text-sm text-center">
+                                    <div class="flex items-center justify-center space-x-4">
+                                        <button class="text-blue-400 hover:text-blue-300 edit-btn"
                                             data-id="<?= htmlspecialchars($sanksi['id']) ?>"
                                             data-laporan_id="<?= htmlspecialchars($sanksi['laporan_id']) ?>"
                                             data-jenis_sanksi="<?= htmlspecialchars($sanksi['jenis_sanksi']) ?>"
@@ -233,15 +143,12 @@ $laporan_list = $sanksiController->getAllLaporan();
                                             data-diberikan_oleh="<?= htmlspecialchars($sanksi['diberikan_oleh']) ?>">
                                             <i data-feather="edit" class="w-5 h-5"></i>
                                         </button>
-                                        <form action="" method="POST"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus sanksi ini?');">
+                                        <form action="" method="POST" class="delete-form">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="id_sanksi"
                                                 value="<?= htmlspecialchars($sanksi['id']) ?>">
-                                            <button type="submit"
-                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
-                                                <i data-feather="trash-2" class="w-5 h-5"></i>
-                                            </button>
+                                            <button type="submit" class="text-red-400 hover:text-red-300"><i
+                                                    data-feather="trash-2" class="w-5 h-5"></i></button>
                                         </form>
                                     </div>
                                 </td>
@@ -253,88 +160,135 @@ $laporan_list = $sanksiController->getAllLaporan();
         </div>
     </div>
 
-    <div id="editSanksiModal"
-        class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Edit Sanksi</h3>
+    <!-- Modal Edit Sanksi (Diperbarui) -->
+    <div id="editSanksiModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-lg border border-gray-700">
+            <h3 class="text-2xl font-semibold text-gray-200 mb-5">Edit Sanksi</h3>
             <form action="" method="POST">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" id="edit_id_sanksi" name="id_sanksi">
-
-                <div class="mb-4">
-                    <label for="edit_laporan_id" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                        Laporan Terkait
-                    </label>
-                    <select id="edit_laporan_id" name="laporan_id"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        required>
-                        <option value="">Pilih Laporan</option>
-                        <?php foreach ($laporan_list as $laporan): ?>
-                            <option value="<?= htmlspecialchars($laporan['id']) ?>">
-                                ID: <?= htmlspecialchars($laporan['id']) ?> - Kronologi:
-                                <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) ?><?= (strlen($laporan['kronologi']) > 50 ? '...' : '') ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4">
+                            <label for="edit_laporan_id" class="block text-gray-400 text-sm font-bold mb-2">Laporan
+                                Terkait</label>
+                            <select id="edit_laporan_id" name="laporan_id" required
+                                class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih Laporan</option>
+                                <?php
+                                // Gabungkan laporan saat ini (jika sudah selesai) dengan laporan yang masih diproses
+                                $all_laporan_options = $laporan_options;
+                                ?>
+                                <?php foreach ($all_laporan_options as $laporan): ?>
+                                    <option value="<?= htmlspecialchars($laporan['id']) ?>">ID:
+                                        <?= htmlspecialchars($laporan['id']) ?> -
+                                        <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) ?>...</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="edit_jenis_sanksi" class="block text-gray-400 text-sm font-bold mb-2">Jenis
+                                Sanksi</label>
+                            <select id="edit_jenis_sanksi" name="jenis_sanksi" required
+                                class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Ringan">Ringan</option>
+                                <option value="Berat">Berat</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="edit_deskripsi"
+                                class="block text-gray-400 text-sm font-bold mb-2">Deskripsi</label>
+                            <textarea id="edit_deskripsi" name="deskripsi" rows="4"
+                                class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-4">
+                            <label for="edit_tanggal_mulai" class="block text-gray-400 text-sm font-bold mb-2">Tanggal
+                                Mulai</label>
+                            <input type="date" id="edit_tanggal_mulai" name="tanggal_mulai"
+                                class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="edit_tanggal_selesai" class="block text-gray-400 text-sm font-bold mb-2">Tanggal
+                                Selesai</label>
+                            <input type="date" id="edit_tanggal_selesai" name="tanggal_selesai"
+                                class="bg-gray-800 appearance-none border border-gray-600 rounded-lg w-full py-3 px-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
                 </div>
-
-                <div class="mb-4">
-                    <label for="edit_jenis_sanksi"
-                        class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                        Jenis Sanksi
-                    </label>
-                    <select id="edit_jenis_sanksi" name="jenis_sanksi" required
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                        <option value="Ringan">Ringan</option>
-                        <option value="Sedang">Sedang</option>
-                        <option value="Berat">Berat</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label for="edit_deskripsi" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                        Deskripsi
-                    </label>
-                    <textarea id="edit_deskripsi" name="deskripsi" rows="3"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        required></textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label for="edit_tanggal_mulai"
-                        class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                        Tanggal Mulai
-                    </label>
-                    <input type="date" id="edit_tanggal_mulai" name="tanggal_mulai"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        required>
-                </div>
-
-                <div class="mb-4">
-                    <label for="edit_tanggal_selesai"
-                        class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
-                        Tanggal Selesai (Opsional)
-                    </label>
-                    <input type="date" id="edit_tanggal_selesai" name="tanggal_selesai"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                </div>
-
-                <div class="flex justify-end space-x-2">
+                <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" id="closeEditModal"
-                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white">
-                        Batal
-                    </button>
+                        class="bg-gray-600 hover:bg-gray-700 text-gray-300 font-bold py-2 px-6 rounded-lg">Batal</button>
                     <button type="submit"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        Simpan Perubahan
-                    </button>
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">Simpan
+                        Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
-
 </main>
 
-<script src="../../assets/js/DataSanksi.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Script Notifikasi dari URL
+        <?php if (!empty($status)): ?>
+            Swal.fire({
+                icon: "<?= htmlspecialchars($status) ?>",
+                title: "<?= $status === 'success' ? 'Berhasil!' : 'Gagal!' ?>",
+                text: "<?= htmlspecialchars($msg) ?>",
+                background: '#1f2937',
+                color: '#d1d5db'
+            }).then(() => {
+                history.replaceState(null, null, window.location.pathname);
+            });
+        <?php endif; ?>
+
+        // Script Konfirmasi Hapus
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Data sanksi ini akan dihapus permanen!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#4b5563',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                    background: '#1f2937',
+                    color: '#d1d5db'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Script untuk Modal Edit
+        const editModal = document.getElementById('editSanksiModal');
+        const closeEditModalBtn = document.getElementById('closeEditModal');
+
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const data = this.dataset;
+                document.getElementById('edit_id_sanksi').value = data.id;
+                document.getElementById('edit_laporan_id').value = data.laporan_id;
+                document.getElementById('edit_jenis_sanksi').value = data.jenis_sanksi;
+                document.getElementById('edit_deskripsi').value = data.deskripsi;
+                document.getElementById('edit_tanggal_mulai').value = data.tanggal_mulai;
+                document.getElementById('edit_tanggal_selesai').value = data.tanggal_selesai;
+
+                editModal.classList.remove('hidden');
+            });
+        });
+
+        closeEditModalBtn.addEventListener('click', () => {
+            editModal.classList.add('hidden');
+        });
+    });
+</script>
 
 <?php include 'footer.php'; ?>

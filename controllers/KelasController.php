@@ -1,103 +1,116 @@
 <?php
 
-// Initialize variables for messages
-$success_message = '';
-$error_message = '';
+include '../../config/database.php';
 
-// Check for messages passed via session (from previous operations like add/edit/delete)
-if (isset($_SESSION['success_message'])) {
-    $success_message = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
-}
-if (isset($_SESSION['error_message'])) {
-    $error_message = $_SESSION['error_message'];
-    unset($_SESSION['error_message']);
-}
+/**
+ * =================================================================
+ * KelasController.php
+ * (Menggunakan Notifikasi via URL & Pola PRG)
+ * =================================================================
+ */
 
-// Ensure database connection is available
-if (!isset($conn) || $conn->connect_error) {
-    $error_message = "Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error');
-}
+// session_start() tidak lagi diperlukan untuk metode notifikasi ini.
 
-// --- Handle Form Submissions (Add/Edit/Delete) ---
-// This block will process the form submissions for managing 'kelas' data.
-// We'll use a hidden 'action' field in the form to determine the operation.
+// Diasumsikan koneksi '$conn' sudah tersedia dari file yang meng-include controller ini.
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error_message)) {
+// =================================================================
+// BAGIAN PEMROSESAN FORM (CREATE, UPDATE, DELETE)
+// =================================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (!isset($conn)) {
+        $errorMsg = urlencode("Koneksi database tidak ditemukan.");
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?status=error&msg=' . $errorMsg);
+        exit();
+    }
+
     $action = $_POST['action'] ?? '';
+    $redirectUrl = $_SERVER['PHP_SELF']; // Halaman tujuan redirect
 
     switch ($action) {
         case 'add':
-            $nama_kelas = mysqli_real_escape_string($conn, $_POST['nama_kelas'] ?? '');
+            $nama_kelas = trim($_POST['nama_kelas'] ?? '');
             if (!empty($nama_kelas)) {
-                // TIDAK menyertakan created_at dan updated_at
-                $sql = "INSERT INTO kelas (nama_kelas) VALUES ('$nama_kelas')";
+                $safe_nama = mysqli_real_escape_string($conn, $nama_kelas);
+                $sql = "INSERT INTO kelas (nama_kelas) VALUES ('$safe_nama')";
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Kelas berhasil ditambahkan!';
+                    $status = 'success';
+                    $msg = 'Kelas baru berhasil ditambahkan!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal menambahkan kelas: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal menambahkan kelas: ' . mysqli_error($conn);
                 }
             } else {
-                $_SESSION['error_message'] = 'Nama Kelas tidak boleh kosong.';
+                $status = 'error';
+                $msg = 'Nama Kelas tidak boleh kosong.';
             }
             break;
 
         case 'edit':
-            $id_kelas = mysqli_real_escape_string($conn, $_POST['id_kelas'] ?? '');
-            $nama_kelas = mysqli_real_escape_string($conn, $_POST['nama_kelas'] ?? '');
-            if (!empty($id_kelas) && !empty($nama_kelas)) {
-                // FIX: Menghapus tanda '=' yang berlebihan. TIDAK menyertakan updated_at.
-                $sql = "UPDATE kelas SET nama_kelas = '$nama_kelas' WHERE id = '$id_kelas'";
+            $id = trim($_POST['id_kelas'] ?? '');
+            $nama_kelas = trim($_POST['nama_kelas'] ?? '');
+            if (!empty($id) && !empty($nama_kelas)) {
+                $safe_id = mysqli_real_escape_string($conn, $id);
+                $safe_nama = mysqli_real_escape_string($conn, $nama_kelas);
+                $sql = "UPDATE kelas SET nama_kelas = '$safe_nama' WHERE id = '$safe_id'";
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Kelas berhasil diubah!';
+                    $status = 'success';
+                    $msg = 'Data Kelas berhasil diubah!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal mengubah kelas: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal mengubah data: ' . mysqli_error($conn);
                 }
             } else {
-                $_SESSION['error_message'] = 'ID Kelas atau Nama Kelas tidak boleh kosong.';
+                $status = 'error';
+                $msg = 'Data tidak lengkap untuk proses edit.';
             }
             break;
 
         case 'delete':
-            $id_kelas = mysqli_real_escape_string($conn, $_POST['id_kelas'] ?? '');
-            if (!empty($id_kelas)) {
-                $sql = "DELETE FROM kelas WHERE id = '$id_kelas'";
+            $id = trim($_POST['id_kelas'] ?? '');
+            if (!empty($id)) {
+                $safe_id = mysqli_real_escape_string($conn, $id);
+                $sql = "DELETE FROM kelas WHERE id = '$safe_id'";
                 if (mysqli_query($conn, $sql)) {
-                    $_SESSION['success_message'] = 'Kelas berhasil dihapus!';
+                    $status = 'success';
+                    $msg = 'Kelas berhasil dihapus!';
                 } else {
-                    $_SESSION['error_message'] = 'Gagal menghapus kelas: ' . mysqli_error($conn);
+                    $status = 'error';
+                    $msg = 'Gagal menghapus kelas.';
                 }
             } else {
-                $_SESSION['error_message'] = 'ID Kelas tidak boleh kosong untuk menghapus.';
+                $status = 'error';
+                $msg = 'ID Kelas tidak valid.';
             }
             break;
 
         default:
-            $_SESSION['error_message'] = 'Aksi tidak valid.';
+            $status = 'error';
+            $msg = 'Aksi yang diminta tidak valid.';
             break;
     }
 
-    // Redirect to prevent form resubmission and display messages
-    // header('Location: Data_kelas.php'); // Pastikan ini adalah nama file yang benar
-    // exit();
+    // Redirect kembali ke halaman yang sama dengan membawa status dan pesan di URL
+    header('Location: ' . $redirectUrl . '?status=' . $status . '&msg=' . urlencode($msg));
+    exit();
 }
 
-// --- Fetch All Kelas Data for Display ---
+// =================================================================
+// BAGIAN PENGAMBILAN DATA (READ)
+// =================================================================
 $kelas_data = [];
-if (empty($error_message)) { // Only fetch if no database connection errors
-    // Memilih kolom 'id' dan 'nama_kelas' saja
-    $sql_fetch_kelas = "SELECT id, nama_kelas FROM kelas ORDER BY nama_kelas ASC";
-    $result_fetch_kelas = mysqli_query($conn, $sql_fetch_kelas);
+$fetch_error = '';
 
-    if ($result_fetch_kelas) {
-        while ($row = mysqli_fetch_assoc($result_fetch_kelas)) {
-            $kelas_data[] = $row;
-        }
-    } else {
-        $error_message = 'Gagal mengambil data kelas: ' . mysqli_error($conn);
-    }
-}
-// Close connection after all operations
 if (isset($conn)) {
-    mysqli_close($conn);
+    $sql_fetch = "SELECT id, nama_kelas FROM kelas ORDER BY nama_kelas ASC";
+    $result = mysqli_query($conn, $sql_fetch);
+    if ($result) {
+        $kelas_data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        $fetch_error = 'Gagal mengambil data kelas: ' . mysqli_error($conn);
+    }
+} else {
+    $fetch_error = "Koneksi database tidak tersedia untuk mengambil data.";
 }
+
+// Koneksi sebaiknya ditutup di file footer.php setelah semua konten selesai dimuat.

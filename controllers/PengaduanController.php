@@ -1,222 +1,151 @@
 <?php
+include '../../config/database.php';
 
-// --- Fetch Kategori Options for the Edit Modal ---
+/**
+ * =================================================================
+ * LaporanController.php
+ * (Menggunakan Notifikasi via URL & Pola PRG)
+ * =================================================================
+ */
+
+// Asumsikan koneksi '$conn' sudah tersedia dari file yang meng-include controller ini.
+$asset_base_path_bukti_server = '../../uploads/'; // Path server untuk menyimpan file
+
+// --- Fetch Master Data for Dropdowns ---
 $kategori_options = [];
-if (empty($error_message) && isset($conn) && $conn->ping()) {
-    $sql_fetch_kategori = "SELECT id, nama_kategori FROM kategori_laporan ORDER BY nama_kategori ASC";
-    $result_fetch_kategori = mysqli_query($conn, $sql_fetch_kategori);
-    if ($result_fetch_kategori) {
-        while ($row = mysqli_fetch_assoc($result_fetch_kategori)) {
-            $kategori_options[] = $row;
-        }
-        mysqli_free_result($result_fetch_kategori);
-    } else {
-        $error_message = 'Gagal mengambil data kategori: ' . mysqli_error($conn);
-    }
-}
-
-// Define Status Options for the Edit Modal
 $status_options = ['terkirim', 'diproses', 'selesai', 'ditolak'];
+$fetch_master_error = '';
 
-
-// --- Handle Form Submissions (Edit and Delete) ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error_message)) {
-    // Re-establish connection here if it was closed by header.php and needed for POST operations
-    if (!isset($conn) || !$conn->ping()) {
-        include '../../config/database.php'; // Path relative to this file
-        if (!isset($conn) || $conn->connect_error) {
-            $_SESSION['error_message'] = "Koneksi database gagal saat POST: " . ($conn->connect_error ?? 'Unknown error');
-            header("Location: " . $_SERVER['REQUEST_URI']);
-            exit;
-        }
+if (isset($conn) && $conn->ping()) {
+    // Bagian ini sudah benar, mengambil data kategori untuk dropdown di modal edit
+    $result_kategori = mysqli_query($conn, "SELECT id, nama_kategori FROM kategori_laporan ORDER BY nama_kategori ASC");
+    if ($result_kategori) {
+        $kategori_options = mysqli_fetch_all($result_kategori, MYSQLI_ASSOC);
+    } else {
+        $fetch_master_error = "Gagal mengambil data kategori.";
     }
-
-    if (isset($_POST['action'])) {
-        if ($_POST['action'] === 'edit') {
-            // EDIT LOGIC
-            $laporan_id = filter_input(INPUT_POST, 'edit_laporan_id', FILTER_SANITIZE_NUMBER_INT);
-            $kategori_id = filter_input(INPUT_POST, 'edit_kategori_id', FILTER_SANITIZE_NUMBER_INT);
-            $kronologi = filter_input(INPUT_POST, 'edit_kronologi', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            $lokasi = filter_input(INPUT_POST, 'edit_lokasi', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            $tanggal_kejadian = filter_input(INPUT_POST, 'edit_tanggal_kejadian', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            $status = filter_input(INPUT_POST, 'edit_status', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-            $clear_bukti_file = isset($_POST['clear_bukti_file']) ? true : false;
-            $current_bukti_filename = filter_input(INPUT_POST, 'current_bukti_file', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-
-            if (empty($laporan_id) || empty($kategori_id) || empty($kronologi) || empty($lokasi) || empty($tanggal_kejadian) || empty($status)) {
-                $_SESSION['error_message'] = "Semua field wajib diisi untuk mengedit laporan.";
-                header("Location: " . $_SERVER['REQUEST_URI']);
-                exit;
-            }
-
-            $update_bukti_sql = "";
-            $bukti_filename_for_db = $current_bukti_filename; // Default to current filename
-
-            // Handle file upload
-            if (isset($_FILES['edit_bukti_file']) && $_FILES['edit_bukti_file']['error'] === UPLOAD_ERR_OK) {
-                $file_tmp_name = $_FILES['edit_bukti_file']['tmp_name'];
-                $file_name = basename($_FILES['edit_bukti_file']['name']);
-                $file_size = $_FILES['edit_bukti_file']['size'];
-                $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
-                $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mov', 'avi', 'flv', '3gp', 'wmv', 'pdf'];
-                $max_file_size = 50 * 1024 * 1024; // 50MB
-
-                if (!in_array($file_ext, $allowed_extensions)) {
-                    $_SESSION['error_message'] = "Format file bukti tidak diizinkan. Hanya gambar, video, atau PDF.";
-                } elseif ($file_size > $max_file_size) {
-                    $_SESSION['error_message'] = "Ukuran file bukti terlalu besar (maks 50MB).";
-                } else {
-                    // Generate unique filename
-                    $new_file_name = uniqid('bukti_') . '.' . $file_ext;
-                    $upload_path = $asset_base_path_bukti_server . $new_file_name;
-
-                    if (move_uploaded_file($file_tmp_name, $upload_path)) {
-                        // Delete old file if it exists and a new one is uploaded
-                        if (!empty($current_bukti_filename) && file_exists($asset_base_path_bukti_server . $current_bukti_filename)) {
-                            unlink($asset_base_path_bukti_server . $current_bukti_filename);
-                        }
-                        $bukti_filename_for_db = $new_file_name;
-                        $update_bukti_sql = ", bukti = ?";
-                    } else {
-                        $_SESSION['error_message'] = "Gagal mengunggah file bukti baru.";
-                    }
-                }
-            } elseif ($clear_bukti_file && !empty($current_bukti_filename)) {
-                // User chose to clear the existing file
-                if (file_exists($asset_base_path_bukti_server . $current_bukti_filename)) {
-                    unlink($asset_base_path_bukti_server . $current_bukti_filename);
-                }
-                $bukti_filename_for_db = NULL; // Set bukti to NULL in DB
-                $update_bukti_sql = ", bukti = NULL";
-            }
-
-            if (empty($_SESSION['error_message'])) { // Proceed only if no file upload errors
-                // Get current values from hidden fields for comparison
-                $current_kategori_id = filter_input(INPUT_POST, 'current_kategori_id_display', FILTER_SANITIZE_NUMBER_INT);
-                $current_kronologi = filter_input(INPUT_POST, 'current_kronologi_display', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                $current_lokasi = filter_input(INPUT_POST, 'current_lokasi_display', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                $current_tanggal_kejadian = filter_input(INPUT_POST, 'current_tanggal_kejadian_display', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                $current_status = filter_input(INPUT_POST, 'current_status_display', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-
-                // Check if any data has actually changed
-                $data_changed = false;
-                if (
-                    $kategori_id != $current_kategori_id ||
-                    $kronologi != $current_kronologi ||
-                    $lokasi != $current_lokasi ||
-                    $tanggal_kejadian != $current_tanggal_kejadian ||
-                    $status != $current_status ||
-                    $update_bukti_sql !== "" || // New file uploaded or old one cleared
-                    ($bukti_filename_for_db !== $current_bukti_filename && $update_bukti_sql == "") // Filename changed without new upload (e.g. if current_bukti_filename was empty and now it's not, or vice versa)
-                ) {
-                    $data_changed = true;
-                }
-
-                if ($data_changed) {
-                    $sql_update_laporan = "UPDATE laporan SET kategori_id = ?, kronologi = ?, lokasi = ?, tanggal_kejadian = ?, status = ?, updated_at = NOW() {$update_bukti_sql} WHERE id = ?";
-                    $stmt_update = mysqli_prepare($conn, $sql_update_laporan);
-
-                    if ($stmt_update) {
-                        if ($update_bukti_sql !== "") {
-                            mysqli_stmt_bind_param($stmt_update, "isssssi", $kategori_id, $kronologi, $lokasi, $tanggal_kejadian, $status, $bukti_filename_for_db, $laporan_id);
-                        } else {
-                            mysqli_stmt_bind_param($stmt_update, "issssi", $kategori_id, $kronologi, $lokasi, $tanggal_kejadian, $status, $laporan_id);
-                        }
-
-                        if (mysqli_stmt_execute($stmt_update)) {
-                            $_SESSION['success_message'] = "Laporan berhasil diperbarui!";
-                        } else {
-                            $_SESSION['error_message'] = "Gagal memperbarui laporan: " . mysqli_error($conn);
-                        }
-                        mysqli_stmt_close($stmt_update);
-                    } else {
-                        $_SESSION['error_message'] = "Gagal menyiapkan statement update laporan: " . mysqli_error($conn);
-                    }
-                } else {
-                    $_SESSION['success_message'] = "Tidak ada perubahan yang terdeteksi pada laporan.";
-                }
-            }
-            header("Location: " . $_SERVER['REQUEST_URI']);
-            exit;
-        } elseif ($_POST['action'] === 'delete') {
-            // DELETE LOGIC
-            $laporan_id = filter_input(INPUT_POST, 'delete_laporan_id', FILTER_SANITIZE_NUMBER_INT);
-
-            if (empty($laporan_id)) {
-                $_SESSION['error_message'] = "ID laporan tidak valid untuk dihapus.";
-                header("Location: " . $_SERVER['REQUEST_URI']);
-                exit;
-            }
-
-            // First, get the filename to delete the actual file
-            $sql_get_bukti = "SELECT bukti FROM laporan WHERE id = ?";
-            $stmt_get_bukti = mysqli_prepare($conn, $sql_get_bukti);
-            if ($stmt_get_bukti) {
-                mysqli_stmt_bind_param($stmt_get_bukti, "i", $laporan_id);
-                mysqli_stmt_execute($stmt_get_bukti);
-                mysqli_stmt_bind_result($stmt_get_bukti, $bukti_filename);
-                mysqli_stmt_fetch($stmt_get_bukti);
-                mysqli_stmt_close($stmt_get_bukti);
-
-                // Now delete the record from the database
-                $sql_delete_laporan = "DELETE FROM laporan WHERE id = ?";
-                $stmt_delete = mysqli_prepare($conn, $sql_delete_laporan);
-
-                if ($stmt_delete) {
-                    mysqli_stmt_bind_param($stmt_delete, "i", $laporan_id);
-                    if (mysqli_stmt_execute($stmt_delete)) {
-                        // If DB record deleted, then delete the file
-                        if (!empty($bukti_filename) && file_exists($asset_base_path_bukti_server . $bukti_filename)) {
-                            unlink($asset_base_path_bukti_server . $bukti_filename);
-                        }
-                        $_SESSION['success_message'] = "Laporan berhasil dihapus!";
-                    } else {
-                        $_SESSION['error_message'] = "Gagal menghapus laporan dari database: " . mysqli_error($conn);
-                    }
-                    mysqli_stmt_close($stmt_delete);
-                } else {
-                    $_SESSION['error_message'] = "Gagal menyiapkan statement delete laporan: " . mysqli_error($conn);
-                }
-            } else {
-                $_SESSION['error_message'] = "Gagal mengambil nama file bukti untuk dihapus: " . mysqli_error($conn);
-            }
-            header("Location: " . $_SERVER['REQUEST_URI']);
-            exit;
-        }
-    }
+} else {
+    $fetch_master_error = "Koneksi database gagal.";
 }
 
-// --- Re-establish connection for fetching data if it was closed by POST handler ---
-if (!isset($conn) || !$conn->ping()) {
-    // Re-include config/database.php if connection was closed or not established
-    include '../../config/database.php';
-    if (!isset($conn) || $conn->connect_error) {
-        $error_message = "Koneksi database gagal saat fetching data: " . ($conn->connect_error ?? 'Unknown error');
+// --- Handle Form Submissions (Edit/Delete) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (!isset($conn)) {
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?status=error&msg=' . urlencode("Koneksi database tidak ditemukan."));
+        exit();
     }
+
+    $action = $_POST['action'] ?? '';
+    $status = 'error'; // Default status
+    $msg = 'Aksi tidak diketahui atau terjadi kesalahan.'; // Default message
+
+    mysqli_begin_transaction($conn);
+    try {
+        switch ($action) {
+            case 'edit':
+                $laporan_id = filter_input(INPUT_POST, 'edit_laporan_id', FILTER_VALIDATE_INT);
+                $kategori_id = filter_input(INPUT_POST, 'edit_kategori_id', FILTER_VALIDATE_INT);
+                $kronologi = $_POST['edit_kronologi'] ?? '';
+                $lokasi = $_POST['edit_lokasi'] ?? '';
+                $tanggal_kejadian = $_POST['edit_tanggal_kejadian'] ?? '';
+                $status_laporan = $_POST['edit_status'] ?? '';
+                $current_bukti_filename = $_POST['current_bukti_file'] ?? '';
+
+                if (!$laporan_id || !$kategori_id || empty($kronologi) || empty($lokasi) || empty($tanggal_kejadian) || empty($status_laporan)) {
+                    throw new Exception('Semua field wajib diisi untuk mengedit laporan.');
+                }
+
+                $update_bukti_sql_part = "";
+                $bukti_filename_for_db = $current_bukti_filename;
+
+                if (isset($_FILES['edit_bukti_file']) && $_FILES['edit_bukti_file']['error'] === UPLOAD_ERR_OK) {
+                    $new_file_name = uniqid('bukti_') . '.' . strtolower(pathinfo($_FILES['edit_bukti_file']['name'], PATHINFO_EXTENSION));
+                    if (!move_uploaded_file($_FILES['edit_bukti_file']['tmp_name'], $asset_base_path_bukti_server . $new_file_name)) {
+                        throw new Exception('Gagal mengunggah file bukti baru.');
+                    }
+                    if (!empty($current_bukti_filename) && file_exists($asset_base_path_bukti_server . $current_bukti_filename)) {
+                        unlink($asset_base_path_bukti_server . $current_bukti_filename);
+                    }
+                    $bukti_filename_for_db = $new_file_name;
+                    $update_bukti_sql_part = ", bukti = ?";
+                }
+
+                $sql_update = "UPDATE laporan SET kategori_id = ?, kronologi = ?, lokasi = ?, tanggal_kejadian = ?, status = ?, updated_at = NOW() {$update_bukti_sql_part} WHERE id = ?";
+                $stmt_update = $conn->prepare($sql_update);
+
+                if ($update_bukti_sql_part) {
+                    $stmt_update->bind_param("isssssi", $kategori_id, $kronologi, $lokasi, $tanggal_kejadian, $status_laporan, $bukti_filename_for_db, $laporan_id);
+                } else {
+                    $stmt_update->bind_param("issssi", $kategori_id, $kronologi, $lokasi, $tanggal_kejadian, $status_laporan, $laporan_id);
+                }
+
+                if (!$stmt_update->execute()) {
+                    throw new Exception('Gagal memperbarui laporan: ' . $stmt_update->error);
+                }
+
+                $status = 'success';
+                $msg = "Laporan berhasil diperbarui!";
+                break;
+
+            case 'delete':
+                $laporan_id = filter_input(INPUT_POST, 'delete_laporan_id', FILTER_VALIDATE_INT);
+                if (!$laporan_id) {
+                    throw new Exception('ID laporan tidak valid untuk dihapus.');
+                }
+
+                $stmt_get_bukti = $conn->prepare("SELECT bukti FROM laporan WHERE id = ?");
+                $stmt_get_bukti->bind_param("i", $laporan_id);
+                $stmt_get_bukti->execute();
+                $bukti_filename = $stmt_get_bukti->get_result()->fetch_assoc()['bukti'] ?? null;
+                $stmt_get_bukti->close();
+
+                $stmt_delete = $conn->prepare("DELETE FROM laporan WHERE id = ?");
+                $stmt_delete->bind_param("i", $laporan_id);
+                if (!$stmt_delete->execute()) {
+                    throw new Exception('Gagal menghapus laporan: ' . $stmt_delete->error);
+                }
+
+                if (!empty($bukti_filename) && file_exists($asset_base_path_bukti_server . $bukti_filename)) {
+                    unlink($asset_base_path_bukti_server . $bukti_filename);
+                }
+
+                $status = 'success';
+                $msg = "Laporan berhasil dihapus!";
+                break;
+
+            default:
+                throw new Exception('Aksi tidak valid.');
+        }
+        mysqli_commit($conn);
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        $status = 'error';
+        $msg = $e->getMessage();
+    }
+
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?status=' . $status . '&msg=' . urlencode($msg));
+    exit();
 }
 
 // --- Fetch All Laporan Data for Display ---
 $laporan_data = [];
-$sanksi_by_laporan_id = []; // Initialize to store grouped sanctions
+$sanksi_by_laporan_id = [];
+$fetch_error = '';
 
-if (empty($error_message) && isset($conn) && $conn->ping()) {
-    // 1. Fetch all sanksi data and group by laporan_id
-    $sql_fetch_sanksi = "SELECT id, laporan_id, jenis_sanksi, deskripsi, tanggal_mulai, tanggal_selesai, diberikan_oleh FROM sanksi ORDER BY laporan_id, id ASC";
-    $result_fetch_sanksi = mysqli_query($conn, $sql_fetch_sanksi);
-
-    if ($result_fetch_sanksi) {
-        while ($sanksi_row = mysqli_fetch_assoc($result_fetch_sanksi)) {
+if (empty($fetch_master_error) && isset($conn) && $conn->ping()) {
+    // 1. Fetch all sanksi data
+    $result_sanksi = mysqli_query($conn, "SELECT id, laporan_id, jenis_sanksi FROM sanksi");
+    if ($result_sanksi) {
+        while ($sanksi_row = mysqli_fetch_assoc($result_sanksi)) {
             $sanksi_by_laporan_id[$sanksi_row['laporan_id']][] = $sanksi_row;
         }
-        mysqli_free_result($result_fetch_sanksi);
     } else {
-        $error_message = 'Gagal mengambil data sanksi: ' . mysqli_error($conn);
+        $fetch_error = 'Gagal mengambil data sanksi.';
     }
 
-
-    // 2. Fetch all laporan data (main query)
-    $sql_fetch_laporan = "
+    // 2. Fetch all laporan data
+    $sql_laporan = "
         SELECT
             l.id, l.kategori_id, l.kronologi, l.lokasi, l.tanggal_kejadian, l.bukti, l.status, l.created_at, l.updated_at,
             kl.nama_kategori,
@@ -227,18 +156,12 @@ if (empty($error_message) && isset($conn) && $conn->ping()) {
         LEFT JOIN users u ON l.user_id = u.id
         ORDER BY l.created_at DESC
     ";
-    $result_fetch_laporan = mysqli_query($conn, $sql_fetch_laporan);
-
-    if ($result_fetch_laporan) {
-        while ($row = mysqli_fetch_assoc($result_fetch_laporan)) {
-            $laporan_data[] = $row;
-        }
-        mysqli_free_result($result_fetch_laporan);
+    $result_laporan = mysqli_query($conn, $sql_laporan);
+    if ($result_laporan) {
+        $laporan_data = mysqli_fetch_all($result_laporan, MYSQLI_ASSOC);
     } else {
-        $error_message = 'Gagal mengambil data laporan: ' . mysqli_error($conn);
+        $fetch_error .= ' Gagal mengambil data laporan.';
     }
-}
-// Close connection after all operations
-if (isset($conn)) {
-    mysqli_close($conn);
+} else {
+    $fetch_error = $fetch_master_error ?: "Koneksi database tidak tersedia.";
 }

@@ -104,7 +104,7 @@ if (isset($conn)) {
                                 }
                             }
                         ?>
-                            <a href="detail-laporan?id=<?= htmlspecialchars($row['id']) ?>" class="block laporan-card bg-white rounded-xl shadow-lg overflow-hidden mb-6 cursor-pointer
+                            <a href="detail-laporan.php?id=<?= htmlspecialchars($row['id']) ?>" class="block laporan-card bg-white rounded-xl shadow-lg overflow-hidden mb-6 cursor-pointer
                             hover:shadow-xl transition-shadow duration-300">
                                 <div class="relative">
                                     <?php if ($mediaType === 'image'): ?>
@@ -126,7 +126,8 @@ if (isset($conn)) {
                                         </div>
                                     <?php endif; ?>
 
-                                    <div class="absolute top-4 left-4 <?php
+                                    <div
+                                        class="absolute top-4 left-4 <?php
                                                                         echo ($status == 'Terkirim') ? 'bg-yellow-300 text-yellow-900' : '';
                                                                         echo ($status == 'Diproses') ? 'bg-blue-300 text-blue-900' : '';
                                                                         echo ($status == 'Selesai') ? 'bg-green-300 text-green-900' : '';

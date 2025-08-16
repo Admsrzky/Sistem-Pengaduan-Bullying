@@ -13,16 +13,16 @@
         </p>
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
             <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-                <a href="index?page=laporan"
+                <a href="laporan.php"
                     class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
                     Laporkan Sekarang
                 </a>
             <?php else: ?>
-                <a href="login"
+                <a href="login.php"
                     class="inline-block bg-pink-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-pink-700 transition-all duration-300 transform hover:scale-105">
                     Login
                 </a>
-                <a href="login"
+                <a href="login.php"
                     class="inline-block border-2 border-pink-600 text-pink-600 px-8 py-3 rounded-full font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 dark:text-pink-400 dark:border-pink-400 dark:hover:bg-pink-900">
                     Daftar
                 </a>
