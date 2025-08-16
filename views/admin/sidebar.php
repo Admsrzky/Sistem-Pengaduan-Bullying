@@ -34,7 +34,7 @@
                             class="block text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">Jurusan</a>
                         <a href="Data_kelas.php"
                             class="block text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">Kelas</a>
-                        <a href="Data_siswa.php"
+                        <a href="Data_Siswa.php"
                             class="block text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">All
                             Data Siswa</a>
                     </div>
