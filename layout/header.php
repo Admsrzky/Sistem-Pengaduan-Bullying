@@ -142,15 +142,15 @@ if (session_status() == PHP_SESSION_NONE) {
                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                             class="absolute right-0 mt-3 w-48 bg-white text-gray-800 rounded-md shadow-lg py-2 z-50
                                dark:bg-gray-700 dark:text-white">
-                            <a href="index.php?page=profile"
+                            <a href="profile.php"
                                 class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                                 <i class="fas fa-user mr-2 text-gray-600 dark:text-gray-300"></i> Profile
                             </a>
-                            <a href="index.php?page=account-setting"
+                            <a href="account-setting.php"
                                 class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                                 <i class="fas fa-cog mr-2 text-gray-600 dark:text-gray-300"></i> Account settings
                             </a>
-                            <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
+                            <a href="logout.php" onclick="return confirm('Apakah Anda yakin ingin logout?')"
                                 class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400">
                                 <i class="fas fa-sign-out-alt mr-2"></i> Log out
                             </a>
@@ -176,7 +176,7 @@ if (session_status() == PHP_SESSION_NONE) {
             <a href="#kontak" class="block hover:underline py-1">Kontak</a>
 
             <?php if (isset($_SESSION['role']) && ($_SESSION['role'] === 'siswa' || $_SESSION['role'] === 'guru')): ?>
-                <a href="index.php?page=riwayat-laporan" class="block hover:underline py-1">Lihat Laporan</a>
+                <a href="riwayat-laporan.php" class="block hover:underline py-1">Lihat Laporan</a>
                 <div class="border-t border-pink-500 pt-4 mt-4 dark:border-gray-600">
                     <div class="flex items-center mb-2">
                         <img src="assets/img/profile/<?= htmlspecialchars($_SESSION['foto_profile'] ?? 'default.png') ?>"
@@ -184,7 +184,7 @@ if (session_status() == PHP_SESSION_NONE) {
                         <p class="font-medium"><?= htmlspecialchars($_SESSION['nama'] ?? 'Pelapor') ?></p>
                     </div>
                     <p class="text-xs text-pink-100 mb-2"><?= htmlspecialchars($_SESSION['role'] ?? '') ?></p>
-                    <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin logout?')"
+                    <a href="logout.php" onclick="return confirm('Apakah Anda yakin ingin logout?')"
                         class="block text-white hover:underline">Logout</a>
                 </div>
             <?php else: ?>
