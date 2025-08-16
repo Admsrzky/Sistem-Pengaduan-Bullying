@@ -29,37 +29,61 @@ $asset_base_path_bukti_web = '../../uploads/';
 if (!isset($conn) || $conn->connect_error) {
     $dashboard_error_message = "Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error');
 } else {
-    // --- [PERUBAHAN DIMULAI DI SINI] ---
-    // --- Query for Dashboard Counts (Optimized into 1 Query) ---
-    $sql_status_counts = "SELECT status, COUNT(*) as count FROM laporan GROUP BY status";
-    $result_status_counts = mysqli_query($conn, $sql_status_counts);
-
-    if ($result_status_counts) {
-        while ($row = mysqli_fetch_assoc($result_status_counts)) {
-            // Gunakan switch untuk mengisi variabel yang sudah ada
-            switch ($row['status']) {
-                case 'terkirim':
-                    $status_terkirim = $row['count'];
-                    break;
-                case 'diproses':
-                    $status_diproses = $row['count'];
-                    break;
-                case 'selesai':
-                    $status_selesai = $row['count'];
-                    break;
-                case 'ditolak':
-                    $status_ditolak = $row['count'];
-                    break;
-            }
-        }
-        // Hitung total dari hasil yang sudah ada, tanpa perlu query lagi!
-        $total_pengaduan = $status_terkirim + $status_diproses + $status_selesai + $status_ditolak;
-        mysqli_free_result($result_status_counts);
+    // --- Query for Dashboard Counts ---
+    // Total Pengaduan
+    $sql_total = "SELECT COUNT(*) AS total FROM laporan";
+    $result_total = mysqli_query($conn, $sql_total);
+    if ($result_total) {
+        $row_total = mysqli_fetch_assoc($result_total);
+        $total_pengaduan = $row_total['total'];
+        mysqli_free_result($result_total);
     } else {
-        $dashboard_error_message .= "Gagal mengambil rekap status: " . mysqli_error($conn) . "<br>";
+        $dashboard_error_message .= "Gagal mengambil total pengaduan: " . mysqli_error($conn) . "<br>";
     }
-    // --- [PERUBAHAN SELESAI DI SINI] ---
 
+    // Status Terkirim
+    $sql_terkirim = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'terkirim'";
+    $result_terkirim = mysqli_query($conn, $sql_terkirim);
+    if ($result_terkirim) {
+        $row_terkirim = mysqli_fetch_assoc($result_terkirim);
+        $status_terkirim = $row_terkirim['count'];
+        mysqli_free_result($result_terkirim);
+    } else {
+        $dashboard_error_message .= "Gagal mengambil status terkirim: " . mysqli_error($conn) . "<br>";
+    }
+
+    // Status Diproses
+    $sql_diproses = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'diproses'";
+    $result_diproses = mysqli_query($conn, $sql_diproses);
+    if ($result_diproses) {
+        $row_diproses = mysqli_fetch_assoc($result_diproses);
+        $status_diproses = $row_diproses['count'];
+        mysqli_free_result($result_diproses);
+    } else {
+        $dashboard_error_message .= "Gagal mengambil status diproses: " . mysqli_error($conn) . "<br>";
+    }
+
+    // Status Selesai
+    $sql_selesai = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'selesai'";
+    $result_selesai = mysqli_query($conn, $sql_selesai);
+    if ($result_selesai) {
+        $row_selesai = mysqli_fetch_assoc($result_selesai);
+        $status_selesai = $row_selesai['count'];
+        mysqli_free_result($result_selesai);
+    } else {
+        $dashboard_error_message .= "Gagal mengambil status selesai: " . mysqli_error($conn) . "<br>";
+    }
+
+    // Status Ditolak
+    $sql_ditolak = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'ditolak'";
+    $result_ditolak = mysqli_query($conn, $sql_ditolak);
+    if ($result_ditolak) {
+        $row_ditolak = mysqli_fetch_assoc($result_ditolak);
+        $status_ditolak = $row_ditolak['count'];
+        mysqli_free_result($result_ditolak);
+    } else {
+        $dashboard_error_message .= "Gagal mengambil status ditolak: " . mysqli_error($conn) . "<br>";
+    }
 
     // --- Prepare Data for Chart ---
     $chart_labels = json_encode(['Terkirim', 'Diproses', 'Selesai', 'Ditolak']);
