@@ -29,61 +29,37 @@ $asset_base_path_bukti_web = '../../uploads/';
 if (!isset($conn) || $conn->connect_error) {
     $dashboard_error_message = "Koneksi database gagal: " . ($conn->connect_error ?? 'Unknown error');
 } else {
-    // --- Query for Dashboard Counts ---
-    // Total Pengaduan
-    $sql_total = "SELECT COUNT(*) AS total FROM laporan";
-    $result_total = mysqli_query($conn, $sql_total);
-    if ($result_total) {
-        $row_total = mysqli_fetch_assoc($result_total);
-        $total_pengaduan = $row_total['total'];
-        mysqli_free_result($result_total);
-    } else {
-        $dashboard_error_message .= "Gagal mengambil total pengaduan: " . mysqli_error($conn) . "<br>";
-    }
+    // --- [PERUBAHAN DIMULAI DI SINI] ---
+    // --- Query for Dashboard Counts (Optimized into 1 Query) ---
+    $sql_status_counts = "SELECT status, COUNT(*) as count FROM laporan GROUP BY status";
+    $result_status_counts = mysqli_query($conn, $sql_status_counts);
 
-    // Status Terkirim
-    $sql_terkirim = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'terkirim'";
-    $result_terkirim = mysqli_query($conn, $sql_terkirim);
-    if ($result_terkirim) {
-        $row_terkirim = mysqli_fetch_assoc($result_terkirim);
-        $status_terkirim = $row_terkirim['count'];
-        mysqli_free_result($result_terkirim);
+    if ($result_status_counts) {
+        while ($row = mysqli_fetch_assoc($result_status_counts)) {
+            // Gunakan switch untuk mengisi variabel yang sudah ada
+            switch ($row['status']) {
+                case 'terkirim':
+                    $status_terkirim = $row['count'];
+                    break;
+                case 'diproses':
+                    $status_diproses = $row['count'];
+                    break;
+                case 'selesai':
+                    $status_selesai = $row['count'];
+                    break;
+                case 'ditolak':
+                    $status_ditolak = $row['count'];
+                    break;
+            }
+        }
+        // Hitung total dari hasil yang sudah ada, tanpa perlu query lagi!
+        $total_pengaduan = $status_terkirim + $status_diproses + $status_selesai + $status_ditolak;
+        mysqli_free_result($result_status_counts);
     } else {
-        $dashboard_error_message .= "Gagal mengambil status terkirim: " . mysqli_error($conn) . "<br>";
+        $dashboard_error_message .= "Gagal mengambil rekap status: " . mysqli_error($conn) . "<br>";
     }
+    // --- [PERUBAHAN SELESAI DI SINI] ---
 
-    // Status Diproses
-    $sql_diproses = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'diproses'";
-    $result_diproses = mysqli_query($conn, $sql_diproses);
-    if ($result_diproses) {
-        $row_diproses = mysqli_fetch_assoc($result_diproses);
-        $status_diproses = $row_diproses['count'];
-        mysqli_free_result($result_diproses);
-    } else {
-        $dashboard_error_message .= "Gagal mengambil status diproses: " . mysqli_error($conn) . "<br>";
-    }
-
-    // Status Selesai
-    $sql_selesai = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'selesai'";
-    $result_selesai = mysqli_query($conn, $sql_selesai);
-    if ($result_selesai) {
-        $row_selesai = mysqli_fetch_assoc($result_selesai);
-        $status_selesai = $row_selesai['count'];
-        mysqli_free_result($result_selesai);
-    } else {
-        $dashboard_error_message .= "Gagal mengambil status selesai: " . mysqli_error($conn) . "<br>";
-    }
-
-    // Status Ditolak
-    $sql_ditolak = "SELECT COUNT(*) AS count FROM laporan WHERE status = 'ditolak'";
-    $result_ditolak = mysqli_query($conn, $sql_ditolak);
-    if ($result_ditolak) {
-        $row_ditolak = mysqli_fetch_assoc($result_ditolak);
-        $status_ditolak = $row_ditolak['count'];
-        mysqli_free_result($result_ditolak);
-    } else {
-        $dashboard_error_message .= "Gagal mengambil status ditolak: " . mysqli_error($conn) . "<br>";
-    }
 
     // --- Prepare Data for Chart ---
     $chart_labels = json_encode(['Terkirim', 'Diproses', 'Selesai', 'Ditolak']);
@@ -127,10 +103,10 @@ if (!isset($conn) || $conn->connect_error) {
     </h2>
 
     <?php if ($dashboard_error_message): ?>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <strong class="font-bold">Error!</strong>
-        <span class="block sm:inline"><?= htmlspecialchars($dashboard_error_message) ?></span>
-    </div>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline"><?= htmlspecialchars($dashboard_error_message) ?></span>
+        </div>
     <?php endif; ?>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
@@ -224,10 +200,10 @@ if (!isset($conn) || $conn->connect_error) {
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y dark:divide-gray-700">
                     <?php if (!empty($latest_laporan_data)): ?>
-                    <?php foreach ($latest_laporan_data as $laporan): ?>
-                    <tr class="text-gray-700 dark:text-gray-400">
-                        <td class="px-6 py-4">
-                            <?php
+                        <?php foreach ($latest_laporan_data as $laporan): ?>
+                            <tr class="text-gray-700 dark:text-gray-400">
+                                <td class="px-6 py-4">
+                                    <?php
                                     $bukti_filename = $laporan['bukti'] ?? '';
                                     $extension = pathinfo($bukti_filename, PATHINFO_EXTENSION);
                                     $is_video = false;
@@ -250,25 +226,25 @@ if (!isset($conn) || $conn->connect_error) {
                                         echo '<img src="' . $bukti_url . '" alt="Bukti Laporan" class="w-10 h-10 rounded-md object-cover" />';
                                     }
                                     ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) . (strlen($laporan['kronologi']) > 50 ? '...' : '') ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?= htmlspecialchars($laporan['nama_kategori'] ?? 'Tidak Diketahui') ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <?php
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?= htmlspecialchars(substr($laporan['kronologi'], 0, 50)) . (strlen($laporan['kronologi']) > 50 ? '...' : '') ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?= htmlspecialchars($laporan['nama_kategori'] ?? 'Tidak Diketahui') ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <?php
                                         $pelapor_foto_url = !empty($laporan['foto_profile']) ? $asset_base_path_bukti_web . htmlspecialchars($laporan['foto_profile']) : 'https://i.pravatar.cc/40?img=' . ($laporan['id'] % 20 + 1);
                                         ?>
-                                <img src="<?= $pelapor_foto_url ?>" alt="Author"
-                                    class="w-8 h-8 rounded-full object-cover" />
-                                <span class="ml-2"><?= htmlspecialchars($laporan['nama_pelapor'] ?? 'Anonim') ?></span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?php
+                                        <img src="<?= $pelapor_foto_url ?>" alt="Author"
+                                            class="w-8 h-8 rounded-full object-cover" />
+                                        <span class="ml-2"><?= htmlspecialchars($laporan['nama_pelapor'] ?? 'Anonim') ?></span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php
                                     $status_class = '';
                                     switch ($laporan['status']) {
                                         case 'terkirim':
@@ -288,33 +264,33 @@ if (!isset($conn) || $conn->connect_error) {
                                             break;
                                     }
                                     ?>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $status_class ?>">
-                                <?= htmlspecialchars(ucfirst($laporan['status'])) ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?= htmlspecialchars(date('d.m.Y', strtotime($laporan['created_at']))) ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="relative">
-                                <button class="text-gray-500 dark:text-gray-400 focus:outline-none action-btn"
-                                    data-id="<?= $laporan['id'] ?>">
-                                    <i data-feather="more-horizontal"></i>
-                                </button>
-                                <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hidden z-10 action-dropdown"
-                                    id="action-dropdown-<?= $laporan['id'] ?>">
-                                    <a href="detail_laporan.php?id=<?= $laporan['id'] ?>"
-                                        class="block px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Lihat
-                                        Detail</a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $status_class ?>">
+                                        <?= htmlspecialchars(ucfirst($laporan['status'])) ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?= htmlspecialchars(date('d.m.Y', strtotime($laporan['created_at']))) ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="relative">
+                                        <button class="text-gray-500 dark:text-gray-400 focus:outline-none action-btn"
+                                            data-id="<?= $laporan['id'] ?>">
+                                            <i data-feather="more-horizontal"></i>
+                                        </button>
+                                        <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hidden z-10 action-dropdown"
+                                            id="action-dropdown-<?= $laporan['id'] ?>">
+                                            <a href="detail_laporan.php?id=<?= $laporan['id'] ?>"
+                                                class="block px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Lihat
+                                                Detail</a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                    <tr class="text-gray-700 dark:text-gray-400">
-                        <td colspan="7" class="px-6 py-4 text-center">Tidak ada riwayat laporan terbaru.</td>
-                    </tr>
+                        <tr class="text-gray-700 dark:text-gray-400">
+                            <td colspan="7" class="px-6 py-4 text-center">Tidak ada riwayat laporan terbaru.</td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -325,84 +301,84 @@ if (!isset($conn) || $conn->connect_error) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
-
-    // Dropdown functionality for table actions
-    document.querySelectorAll('.action-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const dropdown = document.getElementById(`action-dropdown-${id}`);
-            // Close other open dropdowns
-            document.querySelectorAll('.action-dropdown').forEach(d => {
-                if (d !== dropdown) {
-                    d.classList.add('hidden');
-                }
-            });
-            dropdown.classList.toggle('hidden');
-        });
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        // Check if the click was outside of any action button or dropdown
-        if (!event.target.closest('.action-btn') && !event.target.closest('.action-dropdown')) {
-            document.querySelectorAll('.action-dropdown').forEach(dropdown => {
-                dropdown.classList.add('hidden');
-            });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
         }
-    });
 
-    // --- Chart.js Integration ---
-    const ctx = document.getElementById('reportStatusChart').getContext('2d');
-
-    // PHP variables for chart data (already JSON encoded in PHP)
-    const chartLabels = <?= $chart_labels ?>;
-    const chartData = <?= $chart_data ?>;
-    const chartColors = <?= $chart_colors ?>;
-
-    new Chart(ctx, {
-        type: 'doughnut', // Or 'pie', 'bar' depending on preference
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: 'Jumlah Pengaduan',
-                data: chartData,
-                backgroundColor: chartColors,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // Allows chart to fill parent div height
-            plugins: {
-                legend: {
-                    position: 'bottom', // Position legend at the bottom
-                    labels: {
-                        color: 'rgb(107, 114, 128)' // Tailwind gray-500
+        // Dropdown functionality for table actions
+        document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const dropdown = document.getElementById(`action-dropdown-${id}`);
+                // Close other open dropdowns
+                document.querySelectorAll('.action-dropdown').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.add('hidden');
                     }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
+                });
+                dropdown.classList.toggle('hidden');
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            // Check if the click was outside of any action button or dropdown
+            if (!event.target.closest('.action-btn') && !event.target.closest('.action-dropdown')) {
+                document.querySelectorAll('.action-dropdown').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+            }
+        });
+
+        // --- Chart.js Integration ---
+        const ctx = document.getElementById('reportStatusChart').getContext('2d');
+
+        // PHP variables for chart data (already JSON encoded in PHP)
+        const chartLabels = <?= $chart_labels ?>;
+        const chartData = <?= $chart_data ?>;
+        const chartColors = <?= $chart_colors ?>;
+
+        new Chart(ctx, {
+            type: 'doughnut', // Or 'pie', 'bar' depending on preference
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Jumlah Pengaduan',
+                    data: chartData,
+                    backgroundColor: chartColors,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Allows chart to fill parent div height
+                plugins: {
+                    legend: {
+                        position: 'bottom', // Position legend at the bottom
+                        labels: {
+                            color: 'rgb(107, 114, 128)' // Tailwind gray-500
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                }
+                                return label;
                             }
-                            if (context.parsed !== null) {
-                                label += context.parsed;
-                            }
-                            return label;
                         }
                     }
                 }
             }
-        }
+        });
     });
-});
 </script>
 
 <?php include 'footer.php'; ?>
