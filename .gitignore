@@ -1,7 +1,7 @@
 # ## Dependencies ##
 # Folder ini berisi library dari Composer. Abaikan karena bisa dibuat ulang
 # dengan perintah `composer install`.
-/vendor/
+vendor/
 
 # ## Environment Variables ##
 # File .env berisi informasi sensitif (password database, API keys).
