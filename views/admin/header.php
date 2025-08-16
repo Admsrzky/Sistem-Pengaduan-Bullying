@@ -229,11 +229,8 @@ $asset_base_path = '../../assets/img/profile/'; // Cilegon/Sipeng/assets/img/pro
                                         class="flex items-center px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                                         <i data-feather="user" class="mr-2"></i> Profile
                                     </a>
-                                    <a href="index.php?page=account-setting"
-                                        class="flex items-center px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <i data-feather="settings" class="mr-2"></i> Account settings
-                                    </a>
                                     <a href="../../logout.php"
+                                        onclick="return confirm('Apakah Anda yakin ingin logout?')"
                                         class="flex items-center px-4 py-2 text-red-500 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                                         <i data-feather="log-out" class="mr-2"></i> Log out
                                     </a>

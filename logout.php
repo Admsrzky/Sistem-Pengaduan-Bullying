@@ -16,7 +16,7 @@ session_destroy();
 $redirect_url = 'home'; // Default ke halaman beranda/landing page
 
 if ($user_role === 'admin' || $user_role === 'kepsek') {
-    $redirect_url = 'login'; // Admin and Kepsek will redirect to the login page
+    $redirect_url = 'login.php'; // Admin and Kepsek will redirect to the login page
 }
 // Jika role adalah 'siswa' atau 'guru', akan tetap ke index.php (beranda)
 
