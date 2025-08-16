@@ -1,4 +1,5 @@
 <?php
-
-date_default_timezone_set('Asia/Jakarta');
-$conn = mysqli_connect('localhost', 'root', '', 'bullying_db');
+$conn = mysqli_connect("localhost", "root", "", "bullying_db");
+if (!$conn) {
+    die("Koneksi database gagal!");
+}
