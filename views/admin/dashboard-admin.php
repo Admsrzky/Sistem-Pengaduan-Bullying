@@ -5,9 +5,6 @@ include '../../config/database.php';
 // and sets up $user_id, $user_nama, $user_foto_profile, and database connection ($conn).
 include 'header.php';
 
-// Set default timezone for consistent date handling
-date_default_timezone_set('Asia/Jakarta');
-
 // Initialize variables for counts
 $total_pengaduan = 0;
 $status_terkirim = 0;

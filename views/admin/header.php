@@ -8,28 +8,6 @@ if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['ro
     exit(); // Crucial to exit after redirect to prevent further script execution
 }
 
-$host = '127.0.0.1';
-$db   = 'bullying_db'; // Nama database Anda sesuai gambar
-$user = 'root'; // User database Anda
-$pass = ''; // Password database Anda (kosong jika tidak ada)
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-$pdo = null; // Initialize PDO object to null
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-    // Tangani error koneksi database
-    error_log("Koneksi Database Gagal: " . $e->getMessage());
-    die("Koneksi ke database gagal. Silakan coba lagi nanti.");
-}
-
 // --- Fungsi Helper untuk Menghitung 'Time Ago' (Waktu yang lalu) ---
 function time_ago($datetime, $full = false)
 {
