@@ -1,0 +1,29 @@
+# ## Dependencies ##
+# Folder ini berisi library dari Composer. Abaikan karena bisa dibuat ulang
+# dengan perintah `composer install`.
+/vendor/
+
+# ## Environment Variables ##
+# File .env berisi informasi sensitif (password database, API keys).
+# Jangan pernah simpan file ini di Git. Simpan file .env.example sebagai gantinya.
+.env
+.env.local
+.env.*.local
+
+# ## Log Files ##
+# Abaikan file-file log yang dibuat oleh aplikasi atau server.
+*.log
+logs/
+
+# ## OS & IDE Files ##
+# File-file yang dibuat otomatis oleh sistem operasi atau editor kode.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ## Temporary Files & Cache ##
+/tmp/
+/temp/
+/cache/
