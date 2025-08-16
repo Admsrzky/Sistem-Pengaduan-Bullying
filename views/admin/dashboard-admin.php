@@ -1,6 +1,6 @@
 <?php
 // sipeng/views/admin/dashboard.php
-
+include '../../config/database.php';
 // Include the header, which handles session_start(), authentication,
 // and sets up $user_id, $user_nama, $user_foto_profile, and database connection ($conn).
 include 'header.php';
