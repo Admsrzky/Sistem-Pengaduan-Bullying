@@ -1,81 +1,17 @@
 <?php
 ob_start(); // TAMBAHKAN BARIS INI SEBAGAI BARIS PERTAMA
 session_start(); // Pastikan session dimulai di awal setiap halaman yang menggunakannya
-include '../../config/database.php';
+require_once '../../config/database.php'; // Ini menggantikan semua blok kode koneksi
+
 if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'kepsek')) {
     // Redirect to login page if no role is set, or if the role is neither admin nor kepsek
     header('Location: ../../login.php');
     exit(); // Crucial to exit after redirect to prevent further script execution
 }
 
-// --- Fungsi Helper untuk Menghitung 'Time Ago' (Waktu yang lalu) ---
-function time_ago($datetime, $full = false)
-{
-    if (!is_string($datetime)) {
-        return 'Invalid date';
-    }
-
-    $now = new DateTime();
-    try {
-        $ago = new DateTime($datetime);
-    } catch (Exception $e) {
-        return 'Invalid date format';
-    }
-
-    $diff = $now->diff($ago);
-
-    $weeks = floor($diff->d / 7);
-    $diff->d -= $weeks * 7;
-
-    $string = array(
-        'y' => 'tahun',
-        'm' => 'bulan',
-        'w' => 'minggu',
-        'd' => 'hari',
-        'h' => 'jam',
-        'i' => 'menit',
-        's' => 'detik',
-    );
-    foreach ($string as $k => &$v) {
-        if ($k === 'w') {
-            if ($weeks) {
-                $v = $weeks . ' ' . $v . ($weeks > 1 ? '' : '');
-            } else {
-                unset($string[$k]);
-            }
-        } elseif ($diff->$k) {
-            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? '' : '');
-        } else {
-            unset($string[$k]);
-        }
-    }
-
-    if (!$full) $string = array_slice($string, 0, 1);
-    return $string ? implode(', ', $string) . ' yang lalu' : 'baru saja';
-}
-
 
 // --- Ambil 3 Laporan Terbaru dari Database ---
 $latest_reports = []; // Inisialisasi variabel sebagai array kosong untuk menyimpan banyak laporan
-
-try {
-    // Query untuk mengambil TIGA laporan terbaru berdasarkan created_at
-    $stmt = $pdo->query("SELECT id, kronologi, created_at FROM laporan ORDER BY created_at DESC LIMIT 2");
-    $results = $stmt->fetchAll(); // Menggunakan fetchAll() untuk mendapatkan semua baris
-
-    if ($results) {
-        foreach ($results as $row) {
-            $latest_reports[] = [
-                'id'       => $row['id'], // Tambahkan ID laporan jika ingin membuat link spesifik
-                'subject'  => $row['kronologi'],
-                'time_ago' => time_ago($row['created_at'])
-            ];
-        }
-    }
-} catch (\PDOException $e) {
-    error_log("Error saat mengambil laporan terbaru: " . $e->getMessage());
-    $latest_reports = []; // Pastikan array kosong jika ada error
-}
 
 // Initialize variables for messages
 $success_message = '';
