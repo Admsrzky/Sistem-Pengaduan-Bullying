@@ -13,7 +13,7 @@ session_unset();
 session_destroy();
 
 // Tentukan URL redirect berdasarkan role pengguna
-$redirect_url = 'home'; // Default ke halaman beranda/landing page
+$redirect_url = 'home.php'; // Default ke halaman beranda/landing page
 
 if ($user_role === 'admin' || $user_role === 'kepsek') {
     $redirect_url = 'login.php'; // Admin and Kepsek will redirect to the login page
