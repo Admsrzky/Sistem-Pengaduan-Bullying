@@ -10,7 +10,7 @@ $status = isset($_GET['status']) ? $_GET['status'] : '';
 $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
 
 // Path untuk menampilkan bukti di browser
-$asset_base_path_bukti_web = '../../assets/bukti/';
+$asset_base_path_bukti_web = './../uploads/';
 ?>
 
 <main class="flex-1 p-6 overflow-y-auto bg-gray-800">

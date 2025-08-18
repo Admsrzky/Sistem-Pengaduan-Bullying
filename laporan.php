@@ -230,39 +230,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pelecehan seksual</h1>
 
         <?php if (!empty($_SESSION['error_message'])): ?>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 font-medium"
-            role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline"><?= htmlspecialchars($_SESSION['error_message']) ?></span>
-            <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
-                onclick="this.parentElement.style.display='none';">
-                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20">
-                    <title>Close</title>
-                    <path
-                        d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 1 1 1.697 1.697L11.697 10l2.652 2.651a1.2 1.2 0 0 1 0 1.698z" />
-                </svg>
-            </span>
-        </div>
-        <?php unset($_SESSION['error_message']); ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 font-medium"
+                role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline"><?= htmlspecialchars($_SESSION['error_message']) ?></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+                    onclick="this.parentElement.style.display='none';">
+                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path
+                            d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 1 1 1.697 1.697L11.697 10l2.652 2.651a1.2 1.2 0 0 1 0 1.698z" />
+                    </svg>
+                </span>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
         <?php endif; ?>
 
         <?php if (!empty($_SESSION['success_message'])): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-4 font-medium"
-            role="alert">
-            <strong class="font-bold">Sukses!</strong>
-            <span class="block sm:inline"><?= htmlspecialchars($_SESSION['success_message']) ?></span>
-            <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
-                onclick="this.parentElement.style.display='none';">
-                <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20">
-                    <title>Close</title>
-                    <path
-                        d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 1 1 1.697 1.697L11.697 10l2.652 2.651a1.2 1.2 0 0 1 0 1.698z" />
-                </svg>
-            </span>
-        </div>
-        <?php unset($_SESSION['success_message']); ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative mb-4 font-medium"
+                role="alert">
+                <strong class="font-bold">Sukses!</strong>
+                <span class="block sm:inline"><?= htmlspecialchars($_SESSION['success_message']) ?></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+                    onclick="this.parentElement.style.display='none';">
+                    <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path
+                            d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.697l-2.651 2.652a1.2 1.2 0 1 1-1.697-1.697L8.303 10 5.651 7.348a1.2 1.2 0 1 1 1.697-1.697L10 8.303l2.651-2.652a1.2 1.2 0 1 1 1.697 1.697L11.697 10l2.652 2.651a1.2 1.2 0 0 1 0 1.698z" />
+                    </svg>
+                </span>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
 
         <form action="" method="POST" enctype="multipart/form-data"
@@ -291,9 +291,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         class="form-select block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-800">
                         <option value="" disabled selected class="text-gray-600">Pilih kategori bullying</option>
                         <?php foreach ($kategoriList as $kategori): ?>
-                        <option value="<?= htmlspecialchars($kategori['id']) ?>">
-                            <?= htmlspecialchars($kategori['nama_kategori']) ?>
-                        </option>
+                            <option value="<?= htmlspecialchars($kategori['id']) ?>">
+                                <?= htmlspecialchars($kategori['nama_kategori']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
