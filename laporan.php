@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $file_tmp = $_FILES['bukti']['tmp_name'];
             $file_size = $_FILES['bukti']['size'];
-            $max_file_size = 50 * 1024 * 1024; // Batas ukuran 50 MB
+            $max_file_size = 500 * 1024 * 1024; // Batas ukuran 50 MB
 
             // Validasi ukuran file terlebih dahulu (lebih cepat jika file terlalu besar)
             if ($file_size > $max_file_size) {
