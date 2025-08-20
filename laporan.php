@@ -330,8 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             class="text-red-500">*</span></label>
                     <input type="file" id="bukti" name="bukti" accept="image/*,video/*,application/pdf" required
                         class="form-input block w-full text-gray-700 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base text-gray-800" />
-                    <p class="text-xs text-red-600 mt-1 italic">Bukti harus berupa gambar, video (MP4, WebM, Ogg, MOV,
-                        AVI), atau PDF, maksimal 50MB.</p>
+                    <p class="text-xs text-red-600 mt-1 italic">Bukti harus berupa gambar maksimal 50MB.</p>
                 </div>
             </div>
 
