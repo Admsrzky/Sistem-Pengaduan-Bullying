@@ -76,10 +76,10 @@ $asset_base_path_bukti_web = '../../uploads/';
                                             case 'diproses':
                                                 echo 'bg-yellow-800 text-yellow-100';
                                                 break;
-                                            case 'selesai':
+                                            case 'Selesai':
                                                 echo 'bg-green-800 text-green-100';
                                                 break;
-                                            case 'ditolak':
+                                            case 'Ditolak':
                                                 echo 'bg-red-800 text-red-100';
                                                 break;
                                             default:
