@@ -92,34 +92,34 @@ if (isset($conn)) {
 <div class="min-h-screen bg-gray-50 py-12 px-6 sm:px-12 lg:px-20">
     <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         <?php if ($mediaType === 'image'): ?>
-            <img src="<?= $mediaPath ?>" alt="Bukti Laporan" class="w-full h-80 object-cover rounded-t-2xl" />
+        <img src="<?= $mediaPath ?>" alt="Bukti Laporan" class="w-full h-80 object-cover rounded-t-2xl" />
         <?php elseif ($mediaType === 'video'): ?>
-            <video controls
-                class="w-full h-80 object-cover rounded-t-2xl bg-black focus:outline-none focus:ring-2 focus:ring-pink-500">
-                <source src="<?= $mediaPath ?>" type="video/<?= strtolower($extension) ?>">
-                Browser Anda tidak mendukung tag video.
-            </video>
+        <video controls
+            class="w-full h-80 object-cover rounded-t-2xl bg-black focus:outline-none focus:ring-2 focus:ring-pink-500">
+            <source src="<?= $mediaPath ?>" type="video/<?= strtolower($extension) ?>">
+            Browser Anda tidak mendukung tag video.
+        </video>
         <?php elseif ($mediaType === 'pdf'): ?>
-            <div class="w-full h-80 bg-gray-100 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" viewBox="0 0 20 20"
-                    fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.414L14.586 5A2 2 0 0115 6.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd" />
-                </svg>
-                <span class="text-lg font-medium">Dokumen PDF tersedia.</span>
-                <a href="<?= $mediaPath ?>" target="_blank"
-                    class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Lihat PDF</a>
-            </div>
+        <div class="w-full h-80 bg-gray-100 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" viewBox="0 0 20 20"
+                fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.414L14.586 5A2 2 0 0115 6.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                    clip-rule="evenodd" />
+            </svg>
+            <span class="text-lg font-medium">Dokumen PDF tersedia.</span>
+            <a href="<?= $mediaPath ?>" target="_blank"
+                class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Lihat PDF</a>
+        </div>
         <?php else: ?>
-            <div class="w-full h-80 bg-gray-200 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="text-lg font-medium">Tidak ada media atau format tidak didukung.</span>
-            </div>
+        <div class="w-full h-80 bg-gray-200 flex flex-col items-center justify-center text-gray-500 rounded-t-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-lg font-medium">Tidak ada media atau format tidak didukung.</span>
+        </div>
         <?php endif; ?>
 
         <div class="p-8 space-y-6 border border-gray-300 rounded-lg">
@@ -151,37 +151,45 @@ if (isset($conn)) {
             </div>
 
             <?php
+            if (isset($laporan) && $laporan['status'] === 'Ditolak'): ?>
+            <div class="mt-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+                <h3 class="font-bold text-lg">Alasan Penolakan:</h3>
+                <p><?= htmlspecialchars($laporan['alasan']) ?></p>
+            </div>
+            <?php endif; ?>
+
+            <?php
             // --- Tampilkan informasi sanksi jika status laporan 'diproses' atau 'selesai' ---
             if ($normalizedStatus === 'diproses' || $normalizedStatus === 'selesai'): // <-- Sekarang menggunakan $normalizedStatus
             ?>
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Sanksi Terkait:</h2>
-                    <?php if (!empty($sanksi_data)): ?>
-                        <div class="space-y-4">
-                            <?php foreach ($sanksi_data as $sanksi): ?>
-                                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                    <p class="text-base font-semibold text-teal-700 mb-1">
-                                        Jenis Sanksi: <?= htmlspecialchars($sanksi['jenis_sanksi']) ?>
-                                    </p>
-                                    <p class="text-sm text-gray-800 mb-2">
-                                        Deskripsi: <?= htmlspecialchars($sanksi['deskripsi']) ?>
-                                    </p>
-                                    <div class="text-xs text-gray-600 flex justify-between">
-                                        <span>
-                                            Tanggal Mulai:
-                                            <?= htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_mulai']))) ?>
-                                            <?= !empty($sanksi['tanggal_selesai']) ? ' - Tanggal Selesai: ' . htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_selesai']))) : '' ?>
-                                        </span>
-                                        <span class="font-medium">Diberikan Oleh:
-                                            <?= htmlspecialchars($sanksi['diberikan_oleh']) ?></span>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Sanksi Terkait:</h2>
+                <?php if (!empty($sanksi_data)): ?>
+                <div class="space-y-4">
+                    <?php foreach ($sanksi_data as $sanksi): ?>
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <p class="text-base font-semibold text-teal-700 mb-1">
+                            Jenis Sanksi: <?= htmlspecialchars($sanksi['jenis_sanksi']) ?>
+                        </p>
+                        <p class="text-sm text-gray-800 mb-2">
+                            Deskripsi: <?= htmlspecialchars($sanksi['deskripsi']) ?>
+                        </p>
+                        <div class="text-xs text-gray-600 flex justify-between">
+                            <span>
+                                Tanggal Mulai:
+                                <?= htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_mulai']))) ?>
+                                <?= !empty($sanksi['tanggal_selesai']) ? ' - Tanggal Selesai: ' . htmlspecialchars(date("d M Y", strtotime($sanksi['tanggal_selesai']))) : '' ?>
+                            </span>
+                            <span class="font-medium">Diberikan Oleh:
+                                <?= htmlspecialchars($sanksi['diberikan_oleh']) ?></span>
                         </div>
-                    <?php else: ?>
-                        <p class="text-gray-600 italic">Belum ada sanksi yang tercatat untuk laporan ini.</p>
-                    <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
+                <?php else: ?>
+                <p class="text-gray-600 italic">Belum ada sanksi yang tercatat untuk laporan ini.</p>
+                <?php endif; ?>
+            </div>
             <?php endif; // End of if status is diproses or selesai
             ?>
 

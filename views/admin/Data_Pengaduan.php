@@ -109,6 +109,13 @@ $asset_base_path_bukti_web = '../../uploads/';
                                             <button type="submit" class="text-red-400 hover:text-red-300"><i
                                                     data-feather="trash-2" class="w-5 h-5"></i></button>
                                         </form>
+                                        <?php if ($laporan['status'] !== 'Selesai' && $laporan['status'] !== 'ditolak'): ?>
+                                            <button class="text-red-400 hover:text-red-300 reject-btn"
+                                                data-id="<?= htmlspecialchars($laporan['id'] ?? '') ?>"
+                                                data-status="<?= htmlspecialchars($laporan['status'] ?? '') ?>">
+                                                <i data-feather="x-circle" class="w-5 h-5"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
@@ -116,6 +123,34 @@ $asset_base_path_bukti_web = '../../uploads/';
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal Tolak -->
+    <div id="reject-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-xl font-bold text-red-400 mb-4">Tolak Laporan</h2>
+            <form id="reject-form" action="../../controllers/PengaduanController.php" method="POST">
+                <input type="hidden" name="action" value="reject">
+                <input type="hidden" id="reject-id" name="reject_laporan_id">
+                <div class="mb-4">
+                    <label for="reject-reason" class="block text-gray-400 text-sm font-bold mb-2">Alasan
+                        Penolakan:</label>
+                    <textarea id="reject-reason" name="alasan" rows="4"
+                        class="shadow appearance-none border border-gray-700 bg-gray-900 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder="Masukkan alasan mengapa laporan ini ditolak..." required></textarea>
+                </div>
+                <div class="flex items-center justify-end space-x-4">
+                    <button type="button" id="cancel-reject-btn"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Tolak
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -274,6 +309,38 @@ $asset_base_path_bukti_web = '../../uploads/';
 
         closeEditModalBtn.addEventListener('click', () => {
             editModal.classList.add('hidden');
+        });
+    });
+</script>
+
+<!-- Modal Tolak -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rejectModal = document.getElementById('reject-modal');
+        const rejectBtns = document.querySelectorAll('.reject-btn');
+        const rejectIdInput = document.getElementById('reject-id');
+        const cancelRejectBtn = document.getElementById('cancel-reject-btn');
+
+        rejectBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const laporanId = this.getAttribute('data-id');
+                rejectIdInput.value = laporanId;
+                rejectModal.classList.remove('hidden');
+                rejectModal.classList.add('flex');
+            });
+        });
+
+        cancelRejectBtn.addEventListener('click', function() {
+            rejectModal.classList.add('hidden');
+            rejectModal.classList.remove('flex');
+        });
+
+        // Opsional: Tutup modal saat mengklik di luar area modal
+        window.addEventListener('click', function(event) {
+            if (event.target === rejectModal) {
+                rejectModal.classList.add('hidden');
+                rejectModal.classList.remove('flex');
+            }
         });
     });
 </script>

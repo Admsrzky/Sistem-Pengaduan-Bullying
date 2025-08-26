@@ -1,5 +1,5 @@
 <?php
-include '../../config/database.php';
+include '../config/database.php';
 
 /**
  * =================================================================
@@ -28,9 +28,9 @@ if (isset($conn) && $conn->ping()) {
     $fetch_master_error = "Koneksi database gagal.";
 }
 
-// --- Handle Form Submissions (Edit/Delete) ---
+// --- Handle Form Submissions (Edit/Delete/Reject) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+    // Verifikasi koneksi database
     if (!isset($conn)) {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?status=error&msg=' . urlencode("Koneksi database tidak ditemukan."));
         exit();
@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = 'error'; // Default status
     $msg = 'Aksi tidak diketahui atau terjadi kesalahan.'; // Default message
 
+    // Mulai transaksi untuk memastikan semua operasi berhasil atau gagal bersamaan
     mysqli_begin_transaction($conn);
     try {
         switch ($action) {
@@ -114,18 +115,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $msg = "Laporan berhasil dihapus!";
                 break;
 
+            case 'reject':
+                $laporan_id = filter_input(INPUT_POST, 'reject_laporan_id', FILTER_VALIDATE_INT);
+                $alasan = $_POST['alasan'] ?? '';
+
+                if (!$laporan_id || empty($alasan)) {
+                    throw new Exception('ID laporan atau alasan penolakan tidak valid.');
+                }
+
+                // Perbarui status dan kolom alasan
+                $sql_reject = "UPDATE laporan SET status = ?, alasan = ?, updated_at = NOW() WHERE id = ?";
+                $stmt_reject = $conn->prepare($sql_reject);
+                $new_status = 'Ditolak'; // Menggunakan lowercase 'ditolak'
+                $stmt_reject->bind_param("ssi", $new_status, $alasan, $laporan_id);
+
+                if (!$stmt_reject->execute()) {
+                    throw new Exception('Gagal menolak laporan: ' . $stmt_reject->error);
+                }
+
+                $status = 'success';
+                $msg = "Laporan berhasil ditolak!";
+                break;
+
             default:
                 throw new Exception('Aksi tidak valid.');
         }
+
+        // Jika semua operasi berhasil, commit transaksi
         mysqli_commit($conn);
     } catch (Exception $e) {
+        // Jika ada kesalahan, rollback transaksi
         mysqli_rollback($conn);
         $status = 'error';
         $msg = $e->getMessage();
     }
 
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?status=' . $status . '&msg=' . urlencode($msg));
+    header('Location: ../views/admin/Data_Pengaduan.php?status=' . $status . '&msg=' . urlencode($msg));
     exit();
+}
+
+// --- Fetch Master Data for Dropdowns ---
+$kategori_options = [];
+$status_options = ['terkirim', 'diproses', 'selesai', 'ditolak'];
+$fetch_master_error = '';
+
+if (isset($conn) && $conn->ping()) {
+    $result_kategori = mysqli_query($conn, "SELECT id, nama_kategori FROM kategori_laporan ORDER BY nama_kategori ASC");
+    if ($result_kategori) {
+        $kategori_options = mysqli_fetch_all($result_kategori, MYSQLI_ASSOC);
+    } else {
+        $fetch_master_error = "Gagal mengambil data kategori.";
+    }
+} else {
+    $fetch_master_error = "Koneksi database gagal.";
 }
 
 // --- Fetch All Laporan Data for Display ---
